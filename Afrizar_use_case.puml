@@ -1,0 +1,174 @@
+startuml Afrizar_UseCase
+
+actor Client
+actor Vendeur
+actor "Support Client" as Support
+
+rectangle Plateforme {
+  (Consulter Catalogue) as UC1
+  (Commander Produit) as UC2
+  (Payer) as UC3
+  (Gérer Produits) as UC4
+  (Suivre Commande) as UC5
+}
+
+Client --> UC1
+Client --> UC2
+Client --> UC3
+Client --> UC5
+Vendeur --> UC4
+Support --> UC5
+Support --> UC4
+
+@enduml
+
+
+
+@startuml Afrizar_ClassDiagram
+
+class Utilisateur {
+  +id: int
+  +email: string
+  +role: enum
+}
+
+class Client {
+  +adresse: string
+}
+
+class Vendeur {
+  +rating: float
+}
+
+class Produit {
+  +id: int
+  +nom: string
+  +prix: float
+  +stock: int
+}
+
+class Commande {
+  +id: int
+  +date: date
+  +statut: enum
+}
+
+class Paiement {
+  +montant: float
+  +methode: enum
+}
+
+Utilisateur <|-- Client
+Utilisateur <|-- Vendeur
+Client "1" -- "n" Commande
+Vendeur "1" -- "n" Produit
+Commande "1" -- "n" Produit
+Commande "1" -- "1" Paiement
+
+
+@enduml
+
+@startuml OrderStateDiagram
+[*] --> EnAttente
+EnAttente --> EnCours : Paiement validé
+EnCours --> Expédiée : Livraison initiée
+Expédiée --> Livrée : Colis reçu
+Expédiée --> Retournée : Problème livraison
+@enduml
+
+
+@startuml CommissionFlow
+start
+:Calcul du prix vendeur;
+if (Prix < 10 000 FCFA?) then (Oui)
+  :Ajouter 10%;
+else (Non)
+  if (Prix 10 000-30 000 FCFA?) then (Oui)
+    :Ajouter 8%;
+  else (Non)
+    :Ajouter 5%;
+  endif
+endif
+:Afficher prix final;
+stop
+@enduml
+
+@startuml DatabaseSchema
+entity "Utilisateur" {
+  + id [PK]
+  --
+  email
+  role
+}
+
+entity "Produit" {
+  + id [PK]
+  --
+  vendeur_id [FK]
+  prix
+  poids
+}
+
+entity "Commande" {
+  + id [PK]
+  --
+  client_id [FK]
+  statut
+}
+
+Utilisateur ||--o{ Produit
+Utilisateur ||--o{ Commande
+Commande }o--|| Produit : Contient
+@enduml
+
+
+@startuml Afrizar_SequenceDiagram
+
+actor Client
+participant "Front-End" as FE
+participant "Back-End" as BE
+participant "API Paiement" as API
+
+Client -> FE : Sélectionne produit
+FE -> BE : Vérifie disponibilité
+BE --> FE : Délai/stock
+Client -> FE : Confirme commande
+FE -> BE : Crée commande
+BE -> API : Lance paiement
+API --> BE : Confirmation
+BE -> FE : Notification succès
+FE --> Client : Reçu commande
+
+@enduml
+
+
+
+@startuml Afrizar_ComponentDiagram
+
+component "Front-End" as FE {
+  [React]
+  [Flutter]
+}
+
+component "Back-End" as BE {
+  [Node.js/Spring]
+  [API REST]
+}
+
+component "Base de Données" as DB {
+  [PostgreSQL]
+}
+
+component "Services Externes" as SE {
+  [Orange Money]
+  [Wave]
+}
+
+FE --> BE : Requêtes HTTP
+BE --> DB : ORM (Hibernate/TypeORM)
+BE --> SE : Intégration API
+
+@enduml
+
+
+
