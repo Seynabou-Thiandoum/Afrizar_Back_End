@@ -15,6 +15,8 @@ import sn.afrizar.afrizar.model.Client;
 import sn.afrizar.afrizar.model.Utilisateur;
 import sn.afrizar.afrizar.model.Vendeur;
 import sn.afrizar.afrizar.repository.UtilisateurRepository;
+import sn.afrizar.afrizar.security.PasswordPolicyValidator;
+import sn.afrizar.afrizar.security.SecurityAuditLogger;
 import sn.afrizar.afrizar.service.AuthService;
 import sn.afrizar.afrizar.service.ClientService;
 import sn.afrizar.afrizar.service.VendeurService;
@@ -35,6 +37,8 @@ public class AuthServiceImpl implements AuthService {
     private final ClientService clientService;
     private final VendeurService vendeurService;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordPolicyValidator passwordPolicyValidator;
+    private final SecurityAuditLogger securityAuditLogger;
     
     @Value("${app.jwt.secret:afrizarSecretKeyForJWT2024}")
     private String jwtSecret;
@@ -52,6 +56,21 @@ public class AuthServiceImpl implements AuthService {
         // Vérifier si l'email existe déjà
         if (utilisateurRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Un compte avec cet email existe déjà");
+        }
+        
+        // Valider la politique de mot de passe
+        PasswordPolicyValidator.PasswordValidationResult passwordValidation = 
+            passwordPolicyValidator.validatePassword(request.getMotDePasse());
+        
+        if (!passwordValidation.isValid()) {
+            String errorMessage = "Mot de passe invalide: " + String.join(", ", passwordValidation.getErrors());
+            throw new RuntimeException(errorMessage);
+        }
+        
+        // Avertir si le mot de passe est faible
+        if (!passwordValidation.getWarnings().isEmpty()) {
+            log.warn("Mot de passe faible pour l'utilisateur {}: {}", 
+                    request.getEmail(), String.join(", ", passwordValidation.getWarnings()));
         }
         
         // Encoder le mot de passe
@@ -86,10 +105,18 @@ public class AuthServiceImpl implements AuthService {
             }
             
             log.info("Inscription réussie pour l'utilisateur: {}", utilisateur.getEmail());
+            
+            // Audit log
+            securityAuditLogger.logRegistrationSuccess(utilisateur.getEmail(), "unknown", request.getRole().name());
+            
             return response;
             
         } catch (Exception e) {
             log.error("Erreur lors de l'inscription: {}", e.getMessage());
+            
+            // Audit log
+            securityAuditLogger.logRegistrationFailure(request.getEmail(), "unknown", e.getMessage());
+            
             throw new RuntimeException("Erreur lors de l'inscription: " + e.getMessage());
         }
     }
@@ -130,10 +157,18 @@ public class AuthServiceImpl implements AuthService {
         
         // Rechercher l'utilisateur par email
         Utilisateur utilisateur = utilisateurRepository.findByEmailAndActif(request.getEmail(), true)
-                .orElseThrow(() -> new RuntimeException("Email ou mot de passe incorrect"));
+                .orElse(null);
+        
+        if (utilisateur == null) {
+            // Audit log pour tentative de connexion avec email inexistant
+            securityAuditLogger.logAuthenticationFailure(request.getEmail(), "unknown", "Email inexistant");
+            throw new RuntimeException("Email ou mot de passe incorrect");
+        }
         
         // Vérifier le mot de passe
         if (!passwordEncoder.matches(request.getMotDePasse(), utilisateur.getMotDePasse())) {
+            // Audit log pour mot de passe incorrect
+            securityAuditLogger.logAuthenticationFailure(request.getEmail(), "unknown", "Mot de passe incorrect");
             throw new RuntimeException("Email ou mot de passe incorrect");
         }
         
@@ -161,6 +196,10 @@ public class AuthServiceImpl implements AuthService {
         }
         
         log.info("Connexion réussie pour: {}", utilisateur.getEmail());
+        
+        // Audit log
+        securityAuditLogger.logAuthenticationSuccess(utilisateur.getEmail(), "unknown");
+        
         return response;
     }
     
