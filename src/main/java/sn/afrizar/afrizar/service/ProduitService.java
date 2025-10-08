@@ -67,5 +67,22 @@ public interface ProduitService {
     Long getNombreProduitsParVendeur(Long vendeurId);
     
     BigDecimal getMoyennePrix();
+    
+    // Méthodes d'administration
+    Page<ProduitDto> obtenirProduitsEnAttente(Pageable pageable);
+    
+    Page<ProduitDto> obtenirTousLesProduitsAdmin(Pageable pageable);
+    
+    Page<ProduitDto> obtenirProduitsParStatut(Produit.StatutProduit statut, Pageable pageable);
+    
+    ProduitDto validerProduit(Long produitId);
+    
+    void rejeterProduit(Long produitId, String motif);
+    
+    long compterProduits();
+    
+    long compterProduitsActifs();
+    
+    long compterProduitsEnAttente();
 }
 

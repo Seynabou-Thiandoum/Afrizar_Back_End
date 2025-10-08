@@ -232,7 +232,7 @@ public class VendeurController {
             @Parameter(description = "ID du vendeur") @PathVariable Long id) {
         
         try {
-            vendeurService.activerVendeur(id);
+            vendeurService.activerVendeurVoid(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             log.error("Erreur lors de l'activation du vendeur {}: {}", id, e.getMessage());

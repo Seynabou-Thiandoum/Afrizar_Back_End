@@ -87,3 +87,4 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
                path.startsWith("/h2-console");
     }
 }
+

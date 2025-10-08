@@ -112,37 +112,38 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         
         // Autoriser les origines spécifiques (à adapter selon vos besoins)
+        // Pour le développement, autoriser localhost avec différents ports
         configuration.setAllowedOriginPatterns(List.of(
-            "http://localhost:3000",
-            "http://localhost:3001", 
-            "https://*.afrizar.com",
-            "https://afrizar.vercel.app"
+            "http://localhost:*",           // Tous les ports localhost
+            "http://127.0.0.1:*",           // Alias localhost
+            "https://*.afrizar.com",        // Production
+            "https://*.afrizar.sn",         // Production
+            "https://afrizar.vercel.app",   // Vercel
+            "https://*.vercel.app"          // Tous les déploiements Vercel
         ));
         
         // Méthodes HTTP autorisées
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        
-        // En-têtes autorisés
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization", 
-            "Content-Type", 
-            "X-Requested-With",
-            "Accept",
-            "Origin",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
+        
+        // En-têtes autorisés - Permettre tous les en-têtes pour le développement
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         
         // En-têtes exposés
         configuration.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials"
+            "Access-Control-Allow-Credentials",
+            "Authorization",
+            "Content-Type",
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining"
         ));
         
-        // Autoriser les credentials
+        // Autoriser les credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
         
-        // Durée de cache des preflight requests
+        // Durée de cache des preflight requests (1 heure)
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

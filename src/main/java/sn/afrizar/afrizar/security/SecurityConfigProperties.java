@@ -46,3 +46,4 @@ public class SecurityConfigProperties {
         private boolean checkCommonPasswords = true;
     }
 }
+

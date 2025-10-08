@@ -26,7 +26,7 @@ public interface VendeurService {
     
     void desactiverVendeur(Long id);
     
-    void activerVendeur(Long id);
+    void activerVendeurVoid(Long id);
     
     List<VendeurDto> obtenirVendeursVerifies();
     
@@ -49,5 +49,18 @@ public interface VendeurService {
     Long getNombreVendeursVerifies();
     
     boolean verifierEmailDisponible(String email);
+    
+    // Méthodes d'administration
+    Page<VendeurDto> obtenirTousLesVendeurs(Pageable pageable, boolean includeNonVerifies);
+    
+    List<VendeurDto> obtenirVendeursNonVerifies();
+    
+    long compterVendeurs();
+    
+    long compterVendeursVerifies();
+    
+    long compterVendeursNonVerifies();
+    
+    VendeurDto activerVendeur(Long id);
 }
 

@@ -219,6 +219,10 @@ public class AuthServiceImpl implements AuthService {
     
     @Override
     public String genererToken(String email) {
+        // Récupérer l'utilisateur pour avoir son rôle
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
         Date now = new Date();
         Date expiration = new Date(now.getTime() + jwtExpiration);
         
@@ -226,6 +230,10 @@ public class AuthServiceImpl implements AuthService {
         
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", utilisateur.getRole().name())
+                .claim("userId", utilisateur.getId())
+                .claim("nom", utilisateur.getNom())
+                .claim("prenom", utilisateur.getPrenom())
                 .setIssuedAt(now)
                 .setExpiration(expiration)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -264,5 +272,29 @@ public class AuthServiceImpl implements AuthService {
     public void deconnecterUtilisateur(String token) {
         tokensInvalides.add(token);
         log.info("Token invalidé pour déconnexion");
+    }
+    
+    @Override
+    public String extraireRoleDuToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return claims.get("role", String.class);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'extraction du rôle du token: {}", e.getMessage());
+            throw new RuntimeException("Token invalide");
+        }
+    }
+    
+    @Override
+    public Long extraireUserIdDuToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return claims.get("userId", Long.class);
+        } catch (Exception e) {
+            log.error("Erreur lors de l'extraction de l'ID utilisateur du token: {}", e.getMessage());
+            throw new RuntimeException("Token invalide");
+        }
     }
 }

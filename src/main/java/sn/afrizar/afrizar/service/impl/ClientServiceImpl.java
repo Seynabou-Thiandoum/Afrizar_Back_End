@@ -251,5 +251,13 @@ public class ClientServiceImpl implements ClientService {
         client.setTypeLivraisonPrefere(dto.getTypeLivraisonPrefere());
         return client;
     }
+    
+    // ===================== MÉTHODES D'ADMINISTRATION =====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterClients() {
+        return clientRepository.count();
+    }
 }
 

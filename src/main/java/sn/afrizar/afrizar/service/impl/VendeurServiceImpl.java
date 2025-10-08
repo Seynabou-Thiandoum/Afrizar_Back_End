@@ -137,16 +137,31 @@ public class VendeurServiceImpl implements VendeurService {
     }
     
     @Override
-    public void activerVendeur(Long id) {
+    public VendeurDto activerVendeur(Long id) {
         log.info("Activation du vendeur avec ID: {}", id);
         
         Vendeur vendeur = vendeurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vendeur non trouvé avec ID: " + id));
         
         vendeur.setActif(true);
-        vendeurRepository.save(vendeur);
+        Vendeur vendeurMisAJour = vendeurRepository.save(vendeur);
         
         log.info("Vendeur activé avec succès");
+        return convertirEntityVersDto(vendeurMisAJour);
+    }
+
+    @Override
+    public void activerVendeurVoid(Long id) {
+        log.info("Activation du vendeur avec ID: {}", id);
+//
+//        Vendeur vendeur = vendeurRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Vendeur non trouvé avec ID: " + id));
+//
+//        vendeur.setActif(true);
+//        Vendeur vendeurMisAJour = vendeurRepository.save(vendeur);
+//
+//        log.info("Vendeur activé avec succès");
+//        return convertirEntityVersDto(vendeurMisAJour);
     }
     
     @Override
@@ -274,6 +289,50 @@ public class VendeurServiceImpl implements VendeurService {
     @Transactional(readOnly = true)
     public boolean verifierEmailDisponible(String email) {
         return !vendeurRepository.existsByEmail(email);
+    }
+    
+    // ===================== MÉTHODES D'ADMINISTRATION =====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<VendeurDto> obtenirTousLesVendeurs(Pageable pageable, boolean includeNonVerifies) {
+        log.info("Récupération de tous les vendeurs - includeNonVerifies: {}", includeNonVerifies);
+        
+        if (includeNonVerifies) {
+            return vendeurRepository.findAll(pageable)
+                    .map(this::convertirEntityVersDto);
+        } else {
+            return vendeurRepository.findByVerifie(true, pageable)
+                    .map(this::convertirEntityVersDto);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<VendeurDto> obtenirVendeursNonVerifies() {
+        log.info("Récupération des vendeurs non vérifiés");
+        return vendeurRepository.findByVerifie(false)
+                .stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterVendeurs() {
+        return vendeurRepository.count();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterVendeursVerifies() {
+        return vendeurRepository.countByVerifie(true);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterVendeursNonVerifies() {
+        return vendeurRepository.countByVerifie(false);
     }
     
     // Méthodes de conversion

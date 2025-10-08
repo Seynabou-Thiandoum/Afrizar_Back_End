@@ -151,4 +151,67 @@ public class AuthController {
             return ResponseEntity.ok(Map.of("valide", false));
         }
     }
+    
+    @GetMapping("/test")
+    @Operation(summary = "Test de connexion au backend", 
+               description = "Endpoint public pour tester la connexion au backend depuis le front")
+    @ApiResponse(responseCode = "200", description = "Backend accessible")
+    public ResponseEntity<?> test() {
+        return ResponseEntity.ok(Map.of(
+            "message", "✅ Backend Afrizar est accessible !",
+            "timestamp", java.time.LocalDateTime.now().toString(),
+            "version", "1.0.0",
+            "status", "OK"
+        ));
+    }
+    
+    @GetMapping("/test-auth")
+    @Operation(summary = "Test d'authentification", 
+               description = "Endpoint protégé pour tester l'authentification depuis le front")
+    @ApiResponse(responseCode = "200", description = "Authentification réussie")
+    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    public ResponseEntity<?> testAuth(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                
+                if (authService.validerToken(token)) {
+                    String email = authService.extraireEmailDuToken(token);
+                    
+                    return ResponseEntity.ok(Map.of(
+                        "message", "✅ Authentification réussie !",
+                        "email", email,
+                        "timestamp", java.time.LocalDateTime.now().toString(),
+                        "authenticated", true
+                    ));
+                }
+            }
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "message", "❌ Token invalide ou manquant",
+                        "authenticated", false
+                    ));
+            
+        } catch (Exception e) {
+            log.error("Erreur lors du test d'authentification: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                        "message", "❌ Erreur d'authentification: " + e.getMessage(),
+                        "authenticated", false
+                    ));
+        }
+    }
+    
+    @GetMapping("/health")
+    @Operation(summary = "Health check", 
+               description = "Vérifie que le service d'authentification fonctionne")
+    @ApiResponse(responseCode = "200", description = "Service disponible")
+    public ResponseEntity<?> health() {
+        return ResponseEntity.ok(Map.of(
+            "service", "auth",
+            "status", "UP",
+            "timestamp", java.time.LocalDateTime.now().toString()
+        ));
+    }
 }

@@ -35,4 +35,14 @@ public interface AuthService {
      * Déconnexion (invalidation du token)
      */
     void deconnecterUtilisateur(String token);
+    
+    /**
+     * Extraction du rôle depuis un token
+     */
+    String extraireRoleDuToken(String token);
+    
+    /**
+     * Extraction de l'ID utilisateur depuis un token
+     */
+    Long extraireUserIdDuToken(String token);
 }

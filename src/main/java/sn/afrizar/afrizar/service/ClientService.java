@@ -41,5 +41,8 @@ public interface ClientService {
     Double getMoyennePointsFidelite();
     
     boolean verifierEmailDisponible(String email);
+    
+    // Méthodes d'administration
+    long compterClients();
 }
 

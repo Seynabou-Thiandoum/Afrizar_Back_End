@@ -23,6 +23,10 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     // Recherche par statut
     List<Produit> findByStatut(Produit.StatutProduit statut);
     
+    Page<Produit> findByStatut(Produit.StatutProduit statut, Pageable pageable);
+    
+    long countByStatut(Produit.StatutProduit statut);
+    
     // Recherche par disponibilité
     List<Produit> findByDisponibilite(Produit.Disponibilite disponibilite);
     

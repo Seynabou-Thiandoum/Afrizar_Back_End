@@ -19,6 +19,8 @@ public interface CommandeService {
     
     Optional<CommandeDto> obtenirCommandeParNumero(String numeroCommande);
     
+    Page<CommandeDto> obtenirToutesLesCommandesAvecPagination(Pageable pageable);
+    
     List<CommandeDto> obtenirCommandesParClient(Long clientId);
     
     Page<CommandeDto> obtenirCommandesParClientAvecPagination(Long clientId, Pageable pageable);

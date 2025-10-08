@@ -1,5 +1,7 @@
 package sn.afrizar.afrizar.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +20,10 @@ public interface VendeurRepository extends JpaRepository<Vendeur, Long> {
     boolean existsByEmail(String email);
     
     List<Vendeur> findByVerifie(boolean verifie);
+    
+    Page<Vendeur> findByVerifie(boolean verifie, Pageable pageable);
+    
+    long countByVerifie(boolean verifie);
     
     List<Vendeur> findByActif(boolean actif);
     

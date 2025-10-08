@@ -346,6 +346,92 @@ public class ProduitServiceImpl implements ProduitService {
         return produitRepository.getMoyennePrix();
     }
     
+    // ===================== MÉTHODES D'ADMINISTRATION =====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProduitDto> obtenirProduitsEnAttente(Pageable pageable) {
+        log.info("Récupération des produits en attente de validation");
+        return produitRepository.findByStatut(Produit.StatutProduit.EN_ATTENTE_VALIDATION, pageable)
+                .map(this::convertirEntityVersDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProduitDto> obtenirTousLesProduitsAdmin(Pageable pageable) {
+        log.info("Récupération de tous les produits pour l'admin");
+        return produitRepository.findAll(pageable)
+                .map(this::convertirEntityVersDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProduitDto> obtenirProduitsParStatut(Produit.StatutProduit statut, Pageable pageable) {
+        log.info("Récupération des produits avec le statut: {}", statut);
+        return produitRepository.findByStatut(statut, pageable)
+                .map(this::convertirEntityVersDto);
+    }
+    
+    @Override
+    public ProduitDto validerProduit(Long produitId) {
+        log.info("Validation du produit avec ID: {}", produitId);
+        
+        Produit produit = produitRepository.findById(produitId)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé avec ID: " + produitId));
+        
+        if (produit.getStatut() != Produit.StatutProduit.EN_ATTENTE_VALIDATION) {
+            log.warn("Le produit {} n'est pas en attente de validation. Statut actuel: {}", 
+                    produitId, produit.getStatut());
+        }
+        
+        produit.setStatut(Produit.StatutProduit.ACTIF);
+        mettreAJourDisponibilite(produit);
+        
+        Produit produitValide = produitRepository.save(produit);
+        
+        log.info("Produit {} validé et publié avec succès", produitId);
+        return convertirEntityVersDto(produitValide);
+    }
+    
+    @Override
+    public void rejeterProduit(Long produitId, String motif) {
+        log.info("Rejet du produit avec ID: {} - Motif: {}", produitId, motif);
+        
+        Produit produit = produitRepository.findById(produitId)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé avec ID: " + produitId));
+        
+        produit.setStatut(Produit.StatutProduit.INACTIF);
+        
+        // On pourrait stocker le motif dans un champ dédié si nécessaire
+        if (motif != null && !motif.isEmpty()) {
+            String descriptionAvecMotif = produit.getDescription() + 
+                    "\n\n[REJETÉ PAR ADMIN] Motif: " + motif;
+            produit.setDescription(descriptionAvecMotif);
+        }
+        
+        produitRepository.save(produit);
+        
+        log.info("Produit {} rejeté avec succès", produitId);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduits() {
+        return produitRepository.count();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsActifs() {
+        return produitRepository.countByStatut(Produit.StatutProduit.ACTIF);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsEnAttente() {
+        return produitRepository.countByStatut(Produit.StatutProduit.EN_ATTENTE_VALIDATION);
+    }
+    
     // Méthodes utilitaires
     private void mettreAJourDisponibilite(Produit produit) {
         if (produit.getStock() != null && produit.getStock() > 0) {

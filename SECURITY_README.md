@@ -160,3 +160,5 @@ Pour toute question de sécurité, contactez l'équipe de développement ou cons
 ---
 
 **Note** : Ce guide doit être mis à jour à chaque modification des mesures de sécurité.
+
+
