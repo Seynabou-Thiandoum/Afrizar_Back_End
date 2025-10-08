@@ -210,7 +210,7 @@ public class AdminController {
         log.info("Admin: Activation du vendeur {}", id);
         
         try {
-            VendeurDto vendeur = vendeurService.activerVendeurVoid(id);
+            VendeurDto vendeur = vendeurService.activerVendeur(id);
             return ResponseEntity.ok(vendeur);
         } catch (RuntimeException e) {
             log.error("Erreur lors de l'activation du vendeur {}: {}", id, e.getMessage());
