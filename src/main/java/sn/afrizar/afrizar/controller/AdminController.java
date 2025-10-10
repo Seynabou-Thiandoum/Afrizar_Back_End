@@ -14,11 +14,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import sn.afrizar.afrizar.dto.InscriptionRequestDto;
 import sn.afrizar.afrizar.dto.ProduitDto;
 import sn.afrizar.afrizar.dto.UtilisateurDto;
 import sn.afrizar.afrizar.dto.VendeurDto;
 import sn.afrizar.afrizar.model.Produit;
 import sn.afrizar.afrizar.model.Utilisateur;
+import sn.afrizar.afrizar.service.AuthService;
 import sn.afrizar.afrizar.service.ProduitService;
 import sn.afrizar.afrizar.service.VendeurService;
 import sn.afrizar.afrizar.service.ClientService;
@@ -40,6 +42,7 @@ public class AdminController {
     private final VendeurService vendeurService;
     private final ClientService clientService;
     private final UtilisateurRepository utilisateurRepository;
+    private final AuthService authService;
     
     // ===================== GESTION DES PRODUITS =====================
     
@@ -219,6 +222,30 @@ public class AdminController {
     }
     
     // ===================== GESTION DES UTILISATEURS =====================
+    
+    @PostMapping("/utilisateurs/creer")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Créer un utilisateur (tous rôles)", 
+               description = "Permet à l'admin de créer un utilisateur avec n'importe quel rôle (CLIENT, VENDEUR, ADMIN, SUPPORT)")
+    @ApiResponse(responseCode = "200", description = "Utilisateur créé avec succès")
+    @ApiResponse(responseCode = "400", description = "Erreur lors de la création")
+    public ResponseEntity<?> creerUtilisateur(@RequestBody InscriptionRequestDto request) {
+        log.info("Admin: Création d'un nouvel utilisateur - Rôle: {}", request.getRole());
+        
+        try {
+            UtilisateurDto utilisateur = authService.creerUtilisateurParAdmin(request);
+            return ResponseEntity.ok(Map.of(
+                "message", "Utilisateur créé avec succès",
+                "utilisateur", utilisateur
+            ));
+        } catch (RuntimeException e) {
+            log.error("Erreur lors de la création de l'utilisateur: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", "Erreur lors de la création de l'utilisateur",
+                "erreur", e.getMessage()
+            ));
+        }
+    }
     
     @GetMapping("/utilisateurs/tous")
     @PreAuthorize("hasRole('ADMIN')")

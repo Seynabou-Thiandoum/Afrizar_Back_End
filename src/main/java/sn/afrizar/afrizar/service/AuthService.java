@@ -3,6 +3,7 @@ package sn.afrizar.afrizar.service;
 import sn.afrizar.afrizar.dto.AuthRequestDto;
 import sn.afrizar.afrizar.dto.AuthResponseDto;
 import sn.afrizar.afrizar.dto.InscriptionRequestDto;
+import sn.afrizar.afrizar.dto.UtilisateurDto;
 
 public interface AuthService {
     
@@ -45,4 +46,9 @@ public interface AuthService {
      * Extraction de l'ID utilisateur depuis un token
      */
     Long extraireUserIdDuToken(String token);
+    
+    /**
+     * Création d'un utilisateur par l'admin (tous les rôles)
+     */
+    UtilisateurDto creerUtilisateurParAdmin(InscriptionRequestDto request);
 }

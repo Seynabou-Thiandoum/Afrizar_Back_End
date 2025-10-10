@@ -86,8 +86,12 @@ public class AuthServiceImpl implements AuthService {
                 case VENDEUR:
                     utilisateur = creerVendeur(request, motDePasseEncode);
                     break;
+                case ADMIN:
+                case SUPPORT:
+                    throw new RuntimeException("L'inscription publique n'est pas autorisée pour le rôle " + request.getRole() + 
+                                             ". Les comptes ADMIN et SUPPORT doivent être créés par un administrateur via l'endpoint /api/admin/utilisateurs/creer");
                 default:
-                    throw new RuntimeException("Rôle non autorisé pour l'inscription: " + request.getRole());
+                    throw new RuntimeException("Rôle non reconnu: " + request.getRole());
             }
             
             // Générer le token JWT
@@ -296,5 +300,78 @@ public class AuthServiceImpl implements AuthService {
             log.error("Erreur lors de l'extraction de l'ID utilisateur du token: {}", e.getMessage());
             throw new RuntimeException("Token invalide");
         }
+    }
+    
+    @Override
+    public UtilisateurDto creerUtilisateurParAdmin(InscriptionRequestDto request) {
+        log.info("Admin: Création d'un utilisateur avec le rôle: {}", request.getRole());
+        
+        // Vérifier si l'email existe déjà
+        if (utilisateurRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Un compte avec cet email existe déjà");
+        }
+        
+        // Valider la politique de mot de passe
+        PasswordPolicyValidator.PasswordValidationResult passwordValidation = 
+            passwordPolicyValidator.validatePassword(request.getMotDePasse());
+        
+        if (!passwordValidation.isValid()) {
+            String errorMessage = "Mot de passe invalide: " + String.join(", ", passwordValidation.getErrors());
+            throw new RuntimeException(errorMessage);
+        }
+        
+        // Encoder le mot de passe
+        String motDePasseEncode = passwordEncoder.encode(request.getMotDePasse());
+        
+        UtilisateurDto utilisateur;
+        
+        try {
+            switch (request.getRole()) {
+                case CLIENT:
+                    utilisateur = creerClient(request, motDePasseEncode);
+                    break;
+                case VENDEUR:
+                    utilisateur = creerVendeur(request, motDePasseEncode);
+                    break;
+                case ADMIN:
+                case SUPPORT:
+                    utilisateur = creerUtilisateurSimple(request, motDePasseEncode);
+                    break;
+                default:
+                    throw new RuntimeException("Rôle non reconnu: " + request.getRole());
+            }
+            
+            log.info("Admin: Utilisateur créé avec succès - Email: {}, Rôle: {}", 
+                    utilisateur.getEmail(), utilisateur.getRole());
+            
+            // Audit log
+            securityAuditLogger.logRegistrationSuccess(utilisateur.getEmail(), "admin", request.getRole().name());
+            
+            return utilisateur;
+            
+        } catch (Exception e) {
+            log.error("Erreur lors de la création de l'utilisateur par admin: {}", e.getMessage());
+            
+            // Audit log
+            securityAuditLogger.logRegistrationFailure(request.getEmail(), "admin", e.getMessage());
+            
+            throw new RuntimeException("Erreur lors de la création de l'utilisateur: " + e.getMessage());
+        }
+    }
+    
+    private UtilisateurDto creerUtilisateurSimple(InscriptionRequestDto request, String motDePasseEncode) {
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setNom(request.getNom());
+        utilisateur.setPrenom(request.getPrenom());
+        utilisateur.setEmail(request.getEmail());
+        utilisateur.setMotDePasse(motDePasseEncode);
+        utilisateur.setTelephone(request.getTelephone());
+        utilisateur.setRole(request.getRole());
+        utilisateur.setActif(true);
+        utilisateur.setDateCreation(LocalDateTime.now());
+        
+        utilisateur = utilisateurRepository.save(utilisateur);
+        
+        return convertirVersDto(utilisateur);
     }
 }
