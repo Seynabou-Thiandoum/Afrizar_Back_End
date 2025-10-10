@@ -364,6 +364,7 @@ public class VendeurServiceImpl implements VendeurService {
         vendeur.setNom(dto.getNom());
         vendeur.setPrenom(dto.getPrenom());
         vendeur.setEmail(dto.getEmail());
+        vendeur.setMotDePasse(dto.getMotDePasse()); // IMPORTANT: Mot de passe encodé
         vendeur.setTelephone(dto.getTelephone());
         vendeur.setNomBoutique(dto.getNomBoutique());
         vendeur.setDescription(dto.getDescription());

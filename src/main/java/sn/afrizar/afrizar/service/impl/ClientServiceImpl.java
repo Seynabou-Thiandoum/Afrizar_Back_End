@@ -242,6 +242,7 @@ public class ClientServiceImpl implements ClientService {
         client.setNom(dto.getNom());
         client.setPrenom(dto.getPrenom());
         client.setEmail(dto.getEmail());
+        client.setMotDePasse(dto.getMotDePasse()); // IMPORTANT: Mot de passe encodé
         client.setTelephone(dto.getTelephone());
         client.setAdresse(dto.getAdresse());
         client.setVille(dto.getVille());
