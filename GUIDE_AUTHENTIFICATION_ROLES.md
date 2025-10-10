@@ -369,3 +369,4 @@ Pour toute question ou problème :
 
 **Dernière mise à jour:** Octobre 2025  
 **Version:** 1.0.0
+

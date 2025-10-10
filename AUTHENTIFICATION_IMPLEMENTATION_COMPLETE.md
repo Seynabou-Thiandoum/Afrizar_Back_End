@@ -461,3 +461,4 @@ Les vendeurs doivent être vérifiés avant de pouvoir vendre, et leurs produits
 **Développé pour Afrizar**  
 **Date:** Octobre 2025  
 **Version:** 1.0.0
+

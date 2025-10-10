@@ -292,3 +292,4 @@ Bon développement ! 🚀
 
 **Support:** dev@afrizar.sn  
 **Documentation API:** http://localhost:8080/swagger-ui.html
+
