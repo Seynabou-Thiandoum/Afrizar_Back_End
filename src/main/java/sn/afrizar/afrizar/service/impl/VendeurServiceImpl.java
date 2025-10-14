@@ -335,6 +335,44 @@ public class VendeurServiceImpl implements VendeurService {
         return vendeurRepository.countByVerifie(false);
     }
     
+    @Override
+    public VendeurDto publierVendeur(Long vendeurId) {
+        log.info("Publication du vendeur avec ID: {}", vendeurId);
+        
+        Vendeur vendeur = vendeurRepository.findById(vendeurId)
+                .orElseThrow(() -> new RuntimeException("Vendeur non trouvé avec ID: " + vendeurId));
+        
+        vendeur.setPublie(true);
+        Vendeur vendeurMisAJour = vendeurRepository.save(vendeur);
+        
+        log.info("Vendeur publié avec succès");
+        return convertirEntityVersDto(vendeurMisAJour);
+    }
+    
+    @Override
+    public VendeurDto depublierVendeur(Long vendeurId) {
+        log.info("Dépublication du vendeur avec ID: {}", vendeurId);
+        
+        Vendeur vendeur = vendeurRepository.findById(vendeurId)
+                .orElseThrow(() -> new RuntimeException("Vendeur non trouvé avec ID: " + vendeurId));
+        
+        vendeur.setPublie(false);
+        Vendeur vendeurMisAJour = vendeurRepository.save(vendeur);
+        
+        log.info("Vendeur dépublié avec succès");
+        return convertirEntityVersDto(vendeurMisAJour);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<VendeurDto> obtenirVendeursPublies() {
+        log.info("Récupération des vendeurs publiés");
+        return vendeurRepository.findByPublieAndActifAndVerifie(true, true, true)
+                .stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
     // Méthodes de conversion
     private VendeurDto convertirEntityVersDto(Vendeur vendeur) {
         VendeurDto dto = new VendeurDto();
@@ -354,6 +392,8 @@ public class VendeurServiceImpl implements VendeurService {
         dto.setNombreEvaluations(vendeur.getNombreEvaluations());
         dto.setTauxCommissionPersonnalise(vendeur.getTauxCommissionPersonnalise());
         dto.setVerifie(vendeur.isVerifie());
+        dto.setPublie(vendeur.isPublie());
+        dto.setPhotoUrl(vendeur.getPhotoUrl());
         dto.setSpecialites(vendeur.getSpecialites());
         return dto;
     }
@@ -373,6 +413,8 @@ public class VendeurServiceImpl implements VendeurService {
         vendeur.setNombreEvaluations(dto.getNombreEvaluations() != null ? dto.getNombreEvaluations() : 0);
         vendeur.setTauxCommissionPersonnalise(dto.getTauxCommissionPersonnalise());
         vendeur.setVerifie(dto.isVerifie());
+        vendeur.setPublie(dto.isPublie());
+        vendeur.setPhotoUrl(dto.getPhotoUrl());
         vendeur.setSpecialites(dto.getSpecialites());
         return vendeur;
     }

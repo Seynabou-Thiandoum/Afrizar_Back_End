@@ -16,6 +16,9 @@ public class CategorieDto {
     private String description;
     private String icone;
     private Integer ordre;
+    private String type;
+    private String genre;
+    private String imageUrl;
     private boolean active;
     
     // Relation parent/enfant

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.afrizar.afrizar.dto.CategorieDto;
 import sn.afrizar.afrizar.model.Categorie;
+import sn.afrizar.afrizar.model.TypeCategorie;
+import sn.afrizar.afrizar.model.GenreCategorie;
 import sn.afrizar.afrizar.repository.CategorieRepository;
 import sn.afrizar.afrizar.service.CategorieService;
 
@@ -207,6 +209,9 @@ public class CategorieServiceImpl implements CategorieService {
         dto.setDescription(categorie.getDescription());
         dto.setIcone(categorie.getIcone());
         dto.setOrdre(categorie.getOrdre());
+        dto.setType(categorie.getType() != null ? categorie.getType().name() : "VETEMENTS");
+        dto.setGenre(categorie.getGenre() != null ? categorie.getGenre().name() : "HOMME");
+        dto.setImageUrl(categorie.getImageUrl());
         dto.setActive(categorie.isActive());
         
         // Parent
@@ -236,6 +241,9 @@ public class CategorieServiceImpl implements CategorieService {
         categorie.setDescription(dto.getDescription());
         categorie.setIcone(dto.getIcone());
         categorie.setOrdre(dto.getOrdre() != null ? dto.getOrdre() : 0);
+        categorie.setType(dto.getType() != null ? TypeCategorie.valueOf(dto.getType()) : TypeCategorie.VETEMENTS);
+        categorie.setGenre(dto.getGenre() != null ? GenreCategorie.valueOf(dto.getGenre()) : GenreCategorie.HOMME);
+        categorie.setImageUrl(dto.getImageUrl());
         categorie.setActive(dto.isActive());
         return categorie;
     }

@@ -35,6 +35,12 @@ public class Vendeur extends Utilisateur {
     // Statut de vérification du vendeur
     private boolean verifie = false;
     
+    // Statut de publication (visible sur la page publique)
+    private boolean publie = false;
+    
+    // Photo de profil du vendeur
+    private String photoUrl;
+    
     // Spécialités du vendeur
     private String specialites;
     

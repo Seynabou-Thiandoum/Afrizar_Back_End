@@ -37,8 +37,7 @@ public class FileUploadController {
     private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
 
     @PostMapping("/upload")
-    @PreAuthorize("hasAnyRole('ADMIN', 'VENDEUR')")
-    @Operation(summary = "Upload un fichier", description = "Upload une image (max 5MB)")
+    @Operation(summary = "Upload un fichier", description = "Upload une image (max 5MB) - Accessible publiquement")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
         Map<String, String> response = new HashMap<>();
 
@@ -83,6 +82,7 @@ public class FileUploadController {
             response.put("url", fileUrl);
             response.put("filename", newFilename);
             response.put("originalFilename", originalFilename);
+            response.put("fullUrl", "http://localhost:8080" + fileUrl);
 
             return ResponseEntity.ok(response);
 

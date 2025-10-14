@@ -221,6 +221,42 @@ public class AdminController {
         }
     }
     
+    @PatchMapping("/vendeurs/{id}/publier")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Publier un vendeur", 
+               description = "Rend un vendeur visible sur la page publique des vendeurs")
+    @ApiResponse(responseCode = "200", description = "Vendeur publié")
+    @ApiResponse(responseCode = "404", description = "Vendeur non trouvé")
+    public ResponseEntity<VendeurDto> publierVendeur(@PathVariable Long id) {
+        log.info("Admin: Publication du vendeur {}", id);
+        
+        try {
+            VendeurDto vendeur = vendeurService.publierVendeur(id);
+            return ResponseEntity.ok(vendeur);
+        } catch (RuntimeException e) {
+            log.error("Erreur lors de la publication du vendeur {}: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @PatchMapping("/vendeurs/{id}/depublier")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Dépublier un vendeur", 
+               description = "Retire un vendeur de la page publique des vendeurs")
+    @ApiResponse(responseCode = "200", description = "Vendeur dépublié")
+    @ApiResponse(responseCode = "404", description = "Vendeur non trouvé")
+    public ResponseEntity<VendeurDto> depublierVendeur(@PathVariable Long id) {
+        log.info("Admin: Dépublication du vendeur {}", id);
+        
+        try {
+            VendeurDto vendeur = vendeurService.depublierVendeur(id);
+            return ResponseEntity.ok(vendeur);
+        } catch (RuntimeException e) {
+            log.error("Erreur lors de la dépublication du vendeur {}: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     // ===================== GESTION DES UTILISATEURS =====================
     
     @PostMapping("/utilisateurs/creer")

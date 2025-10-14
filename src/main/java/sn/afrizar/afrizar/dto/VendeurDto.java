@@ -21,6 +21,8 @@ public class VendeurDto extends UtilisateurDto {
     private Integer nombreEvaluations;
     private BigDecimal tauxCommissionPersonnalise;
     private boolean verifie;
+    private boolean publie;
+    private String photoUrl;
     private String specialites;
 }
 

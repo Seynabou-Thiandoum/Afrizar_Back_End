@@ -30,6 +30,17 @@ public class Categorie {
     // Ordre d'affichage
     private Integer ordre = 0;
     
+    // Type de catégorie (VETEMENTS, ACCESSOIRES)
+    @Enumerated(EnumType.STRING)
+    private TypeCategorie type = TypeCategorie.VETEMENTS;
+    
+    // Genre ciblé (HOMME, FEMME, ENFANT)
+    @Enumerated(EnumType.STRING)
+    private GenreCategorie genre = GenreCategorie.HOMME;
+    
+    // URL de l'image de la catégorie
+    private String imageUrl;
+    
     // Catégorie active ou non
     private boolean active = true;
     

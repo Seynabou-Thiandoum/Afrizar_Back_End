@@ -42,6 +42,8 @@ public interface VendeurRepository extends JpaRepository<Vendeur, Long> {
     @Query("SELECT COUNT(v) FROM Vendeur v WHERE v.verifie = true AND v.actif = true")
     Long countVendeursVerifies();
     
+    List<Vendeur> findByPublieAndActifAndVerifie(boolean publie, boolean actif, boolean verifie);
+    
     @Query("SELECT v FROM Vendeur v WHERE SIZE(v.produits) >= :nombreProduits")
     List<Vendeur> findVendeursAvecPlusieursProduitsOrderByNomBoutique(@Param("nombreProduits") int nombreProduits);
 }
