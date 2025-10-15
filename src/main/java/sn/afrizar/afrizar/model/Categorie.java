@@ -32,11 +32,11 @@ public class Categorie {
     
     // Type de catégorie (VETEMENTS, ACCESSOIRES)
     @Enumerated(EnumType.STRING)
-    private TypeCategorie type = TypeCategorie.VETEMENTS;
+    private TypeCategorieEnum type = TypeCategorieEnum.VETEMENTS;
     
     // Genre ciblé (HOMME, FEMME, ENFANT)
     @Enumerated(EnumType.STRING)
-    private GenreCategorie genre = GenreCategorie.HOMME;
+    private GenreCategorieEnum genre = GenreCategorieEnum.HOMME;
     
     // URL de l'image de la catégorie
     private String imageUrl;

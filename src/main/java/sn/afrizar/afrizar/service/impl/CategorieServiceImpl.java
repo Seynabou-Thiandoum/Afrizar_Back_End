@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sn.afrizar.afrizar.dto.CategorieDto;
 import sn.afrizar.afrizar.model.Categorie;
-import sn.afrizar.afrizar.model.TypeCategorie;
-import sn.afrizar.afrizar.model.GenreCategorie;
+import sn.afrizar.afrizar.model.TypeCategorieEnum;
+import sn.afrizar.afrizar.model.GenreCategorieEnum;
 import sn.afrizar.afrizar.repository.CategorieRepository;
 import sn.afrizar.afrizar.service.CategorieService;
 
@@ -241,8 +241,8 @@ public class CategorieServiceImpl implements CategorieService {
         categorie.setDescription(dto.getDescription());
         categorie.setIcone(dto.getIcone());
         categorie.setOrdre(dto.getOrdre() != null ? dto.getOrdre() : 0);
-        categorie.setType(dto.getType() != null ? TypeCategorie.valueOf(dto.getType()) : TypeCategorie.VETEMENTS);
-        categorie.setGenre(dto.getGenre() != null ? GenreCategorie.valueOf(dto.getGenre()) : GenreCategorie.HOMME);
+        categorie.setType(dto.getType() != null ? TypeCategorieEnum.valueOf(dto.getType()) : TypeCategorieEnum.VETEMENTS);
+        categorie.setGenre(dto.getGenre() != null ? GenreCategorieEnum.valueOf(dto.getGenre()) : GenreCategorieEnum.HOMME);
         categorie.setImageUrl(dto.getImageUrl());
         categorie.setActive(dto.isActive());
         return categorie;

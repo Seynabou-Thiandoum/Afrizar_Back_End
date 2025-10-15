@@ -75,6 +75,11 @@ public class SecurityConfig {
                 .requestMatchers("GET", "/api/produits/**").permitAll()
                 .requestMatchers("GET", "/api/categories/**").permitAll()
                 
+                // Nouveaux endpoints de gestion des catégories (admin uniquement)
+                .requestMatchers("/api/types-categories/**").hasRole("ADMIN")
+                .requestMatchers("/api/genres-categories/**").hasRole("ADMIN")
+                .requestMatchers("/api/categories-combinaisons/**").hasRole("ADMIN")
+                
                 // Endpoints pour les clients authentifiés
                 .requestMatchers("/api/clients/**").hasAnyRole("CLIENT", "ADMIN")
                 .requestMatchers("/api/commandes/**").hasAnyRole("CLIENT", "ADMIN")
