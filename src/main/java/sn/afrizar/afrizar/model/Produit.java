@@ -51,6 +51,16 @@ public class Produit {
     @CollectionTable(name = "produit_tailles", joinColumns = @JoinColumn(name = "produit_id"))
     private List<Taille> taillesDisponibles;
     
+    // Détails spécifiques du produit
+    @Column(length = 50)
+    private String taille;
+    
+    @Column(length = 50)
+    private String couleur;
+    
+    @Column(length = 100)
+    private String matiere;
+    
     // Qualité du produit
     @Enumerated(EnumType.STRING)
     private Qualite qualite = Qualite.STANDARD;

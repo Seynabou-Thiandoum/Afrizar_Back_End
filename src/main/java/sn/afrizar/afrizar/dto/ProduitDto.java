@@ -23,6 +23,12 @@ public class ProduitDto {
     private Integer delaiProduction;
     private BigDecimal poids;
     private List<Produit.Taille> taillesDisponibles;
+    
+    // Détails spécifiques du produit
+    private String taille;
+    private String couleur;
+    private String matiere;
+    
     private Produit.Qualite qualite;
     private boolean personnalisable;
     private String optionsPersonnalisation;

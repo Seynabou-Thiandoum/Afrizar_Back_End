@@ -221,6 +221,27 @@ public class AdminController {
         }
     }
     
+    @PutMapping("/vendeurs/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mettre à jour un vendeur", 
+               description = "Met à jour les informations complètes d'un vendeur")
+    @ApiResponse(responseCode = "200", description = "Vendeur mis à jour")
+    @ApiResponse(responseCode = "404", description = "Vendeur non trouvé")
+    public ResponseEntity<VendeurDto> mettreAJourVendeur(
+            @PathVariable Long id, 
+            @RequestBody VendeurDto vendeurDto) {
+        log.info("Admin: Mise à jour du vendeur {} - PhotoUrl: {}", id, vendeurDto.getPhotoUrl());
+        
+        try {
+            VendeurDto vendeurMisAJour = vendeurService.mettreAJourVendeur(id, vendeurDto);
+            log.info("✅ Vendeur mis à jour - PhotoUrl dans réponse: {}", vendeurMisAJour.getPhotoUrl());
+            return ResponseEntity.ok(vendeurMisAJour);
+        } catch (RuntimeException e) {
+            log.error("❌ Erreur lors de la mise à jour du vendeur {}: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     @PatchMapping("/vendeurs/{id}/publier")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Publier un vendeur", 

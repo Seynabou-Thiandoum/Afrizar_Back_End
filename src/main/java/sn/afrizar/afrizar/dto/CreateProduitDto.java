@@ -38,6 +38,16 @@ public class CreateProduitDto {
     
     private List<Produit.Taille> taillesDisponibles;
     
+    // Détails spécifiques du produit
+    @Size(max = 50, message = "La taille ne peut pas dépasser 50 caractères")
+    private String taille;
+    
+    @Size(max = 50, message = "La couleur ne peut pas dépasser 50 caractères")
+    private String couleur;
+    
+    @Size(max = 100, message = "La matière ne peut pas dépasser 100 caractères")
+    private String matiere;
+    
     private Produit.Qualite qualite = Produit.Qualite.STANDARD;
     
     private boolean personnalisable = false;

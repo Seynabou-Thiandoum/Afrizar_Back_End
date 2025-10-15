@@ -32,6 +32,7 @@ public class VendeurServiceImpl implements VendeurService {
     @Override
     public VendeurDto creerVendeur(VendeurDto vendeurDto) {
         log.info("Création d'un nouveau vendeur avec email: {}", vendeurDto.getEmail());
+        log.info("PhotoUrl reçu dans le DTO: {}", vendeurDto.getPhotoUrl());
         
         if (vendeurRepository.existsByEmail(vendeurDto.getEmail())) {
             throw new RuntimeException("Un vendeur avec cet email existe déjà");
@@ -45,10 +46,14 @@ public class VendeurServiceImpl implements VendeurService {
         vendeur.setNombreEvaluations(0);
         vendeur.setVerifie(false);
         
+        log.info("PhotoUrl avant sauvegarde: {}", vendeur.getPhotoUrl());
         Vendeur vendeurSauvegarde = vendeurRepository.save(vendeur);
+        log.info("PhotoUrl après sauvegarde: {}", vendeurSauvegarde.getPhotoUrl());
         
         log.info("Vendeur créé avec succès avec ID: {}", vendeurSauvegarde.getId());
-        return convertirEntityVersDto(vendeurSauvegarde);
+        VendeurDto resultat = convertirEntityVersDto(vendeurSauvegarde);
+        log.info("PhotoUrl dans le DTO retourné: {}", resultat.getPhotoUrl());
+        return resultat;
     }
     
     @Override
@@ -104,6 +109,14 @@ public class VendeurServiceImpl implements VendeurService {
         vendeur.setAdresseBoutique(vendeurDto.getAdresseBoutique());
         vendeur.setSpecialites(vendeurDto.getSpecialites());
         vendeur.setTauxCommissionPersonnalise(vendeurDto.getTauxCommissionPersonnalise());
+        
+        // Mettre à jour l'URL de la photo si fournie
+        if (vendeurDto.getPhotoUrl() != null) {
+            vendeur.setPhotoUrl(vendeurDto.getPhotoUrl());
+        }
+        
+        // Mettre à jour le statut de publication si fourni
+        vendeur.setPublie(vendeurDto.isPublie());
         
         Vendeur vendeurMisAJour = vendeurRepository.save(vendeur);
         

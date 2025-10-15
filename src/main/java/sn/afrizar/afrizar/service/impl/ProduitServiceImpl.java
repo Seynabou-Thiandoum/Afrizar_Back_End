@@ -122,6 +122,12 @@ public class ProduitServiceImpl implements ProduitService {
         produit.setDelaiProduction(createProduitDto.getDelaiProduction());
         produit.setPoids(createProduitDto.getPoids());
         produit.setTaillesDisponibles(createProduitDto.getTaillesDisponibles());
+        
+        // Mettre à jour les détails spécifiques du produit
+        produit.setTaille(createProduitDto.getTaille());
+        produit.setCouleur(createProduitDto.getCouleur());
+        produit.setMatiere(createProduitDto.getMatiere());
+        
         produit.setQualite(createProduitDto.getQualite());
         produit.setPersonnalisable(createProduitDto.isPersonnalisable());
         produit.setOptionsPersonnalisation(createProduitDto.getOptionsPersonnalisation());
@@ -455,6 +461,12 @@ public class ProduitServiceImpl implements ProduitService {
         dto.setDelaiProduction(produit.getDelaiProduction());
         dto.setPoids(produit.getPoids());
         dto.setTaillesDisponibles(produit.getTaillesDisponibles());
+        
+        // Détails spécifiques du produit
+        dto.setTaille(produit.getTaille());
+        dto.setCouleur(produit.getCouleur());
+        dto.setMatiere(produit.getMatiere());
+        
         dto.setQualite(produit.getQualite());
         dto.setPersonnalisable(produit.isPersonnalisable());
         dto.setOptionsPersonnalisation(produit.getOptionsPersonnalisation());
@@ -491,6 +503,12 @@ public class ProduitServiceImpl implements ProduitService {
         produit.setDelaiProduction(dto.getDelaiProduction() != null ? dto.getDelaiProduction() : 0);
         produit.setPoids(dto.getPoids());
         produit.setTaillesDisponibles(dto.getTaillesDisponibles());
+        
+        // Détails spécifiques du produit
+        produit.setTaille(dto.getTaille());
+        produit.setCouleur(dto.getCouleur());
+        produit.setMatiere(dto.getMatiere());
+        
         produit.setQualite(dto.getQualite() != null ? dto.getQualite() : Produit.Qualite.STANDARD);
         produit.setPersonnalisable(dto.isPersonnalisable());
         produit.setOptionsPersonnalisation(dto.getOptionsPersonnalisation());

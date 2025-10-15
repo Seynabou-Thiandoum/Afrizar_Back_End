@@ -37,8 +37,10 @@ public class FileUploadController {
     private static final String[] ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
 
     @PostMapping("/upload")
-    @Operation(summary = "Upload un fichier", description = "Upload une image (max 5MB) - Accessible publiquement")
-    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+    @Operation(summary = "Upload un fichier", description = "Upload une image (max 5MB) avec support des sous-dossiers")
+    public ResponseEntity<Map<String, String>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "type", required = false, defaultValue = "general") String type) {
         Map<String, String> response = new HashMap<>();
 
         try {
@@ -61,10 +63,14 @@ public class FileUploadController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Créer le dossier d'upload s'il n'existe pas
-            Path uploadPath = Paths.get(uploadDir);
+            // Déterminer le sous-dossier basé sur le type
+            String subFolder = determineSubFolder(type);
+            
+            // Créer le chemin complet avec sous-dossier
+            Path uploadPath = Paths.get(uploadDir, subFolder);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
+                log.info("📁 Dossier créé: {}", uploadPath);
             }
 
             // Générer un nom de fichier unique
@@ -75,29 +81,53 @@ public class FileUploadController {
             // Copier le fichier
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            log.info("Fichier uploadé avec succès: {}", newFilename);
+            log.info("✅ Fichier uploadé avec succès dans {}/{}: {}", uploadDir, subFolder, newFilename);
 
-            // Retourner l'URL du fichier
-            String fileUrl = "/api/files/" + newFilename;
+            // Retourner l'URL du fichier avec le sous-dossier
+            String fileUrl = "/api/files/" + subFolder + "/" + newFilename;
             response.put("url", fileUrl);
             response.put("filename", newFilename);
             response.put("originalFilename", originalFilename);
+            response.put("type", type);
+            response.put("subFolder", subFolder);
             response.put("fullUrl", "http://localhost:8080" + fileUrl);
 
             return ResponseEntity.ok(response);
 
         } catch (IOException e) {
-            log.error("Erreur lors de l'upload du fichier: {}", e.getMessage());
+            log.error("❌ Erreur lors de l'upload du fichier: {}", e.getMessage());
             response.put("error", "Erreur lors de l'upload du fichier");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    
+    /**
+     * Détermine le sous-dossier en fonction du type de fichier
+     */
+    private String determineSubFolder(String type) {
+        switch (type.toLowerCase()) {
+            case "vendeur":
+            case "vendeurs":
+                return "vendeurs";
+            case "produit":
+            case "produits":
+                return "produits";
+            case "categorie":
+            case "categories":
+                return "categories";
+            case "client":
+            case "clients":
+                return "clients";
+            default:
+                return "general";
+        }
+    }
 
-    @GetMapping("/{filename:.+}")
-    @Operation(summary = "Récupérer un fichier", description = "Télécharge un fichier uploadé")
-    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
+    @GetMapping("/{subFolder}/{filename:.+}")
+    @Operation(summary = "Récupérer un fichier", description = "Télécharge un fichier uploadé depuis un sous-dossier")
+    public ResponseEntity<Resource> getFile(@PathVariable String subFolder, @PathVariable String filename) {
         try {
-            Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
+            Path filePath = Paths.get(uploadDir, subFolder, filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
@@ -112,15 +142,47 @@ public class FileUploadController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
             } else {
-                log.warn("Fichier non trouvé: {}", filename);
+                log.warn("❌ Fichier non trouvé: {}/{}", subFolder, filename);
                 return ResponseEntity.notFound().build();
             }
 
         } catch (MalformedURLException e) {
-            log.error("Erreur lors de la récupération du fichier: {}", e.getMessage());
+            log.error("❌ Erreur lors de la récupération du fichier: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         } catch (IOException e) {
-            log.error("Erreur lors de la lecture du type de fichier: {}", e.getMessage());
+            log.error("❌ Erreur lors de la lecture du type de fichier: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/{filename:.+}")
+    @Operation(summary = "Récupérer un fichier (ancien format)", description = "Télécharge un fichier uploadé - Rétrocompatibilité")
+    public ResponseEntity<Resource> getFileLegacy(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(uploadDir, filename).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                // Déterminer le type de contenu
+                String contentType = Files.probeContentType(filePath);
+                if (contentType == null) {
+                    contentType = "application/octet-stream";
+                }
+
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                log.warn("❌ Fichier non trouvé (legacy): {}", filename);
+                return ResponseEntity.notFound().build();
+            }
+
+        } catch (MalformedURLException e) {
+            log.error("❌ Erreur lors de la récupération du fichier: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (IOException e) {
+            log.error("❌ Erreur lors de la lecture du type de fichier: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

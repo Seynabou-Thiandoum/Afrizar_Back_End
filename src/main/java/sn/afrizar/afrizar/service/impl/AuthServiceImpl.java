@@ -151,6 +151,11 @@ public class AuthServiceImpl implements AuthService {
         vendeurDto.setDescription(request.getDescription());
         vendeurDto.setAdresseBoutique(request.getAdresseBoutique());
         vendeurDto.setSpecialites(request.getSpecialites());
+        vendeurDto.setPhotoUrl(request.getPhotoUrl());
+        vendeurDto.setPublie(request.isPublie());
+        
+        log.info("🔍 Création vendeur - PhotoUrl reçu: {}", request.getPhotoUrl());
+        log.info("🔍 Création vendeur - PhotoUrl dans DTO: {}", vendeurDto.getPhotoUrl());
         
         return vendeurService.creerVendeur(vendeurDto);
     }

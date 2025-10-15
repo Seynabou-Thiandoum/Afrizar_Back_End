@@ -156,5 +156,22 @@ public class InscriptionRequestDto {
     private String description;
     private String adresseBoutique;
     private String specialites;
+    private String photoUrl;
+    private boolean publie;
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public boolean isPublie() {
+        return publie;
+    }
+
+    public void setPublie(boolean publie) {
+        this.publie = publie;
+    }
 }
