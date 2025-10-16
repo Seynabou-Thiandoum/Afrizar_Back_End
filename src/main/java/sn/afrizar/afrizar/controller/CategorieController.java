@@ -193,5 +193,25 @@ public class CategorieController {
         boolean disponible = categorieService.verifierNomDisponible(nom);
         return ResponseEntity.ok(disponible);
     }
+    
+    @GetMapping("/slug/{slug}")
+    @Operation(summary = "Obtenir une catégorie par slug", description = "Récupère une catégorie par son slug")
+    @ApiResponse(responseCode = "200", description = "Catégorie trouvée")
+    @ApiResponse(responseCode = "404", description = "Catégorie non trouvée")
+    public ResponseEntity<CategorieDto> obtenirCategorieParSlug(
+            @Parameter(description = "Slug de la catégorie") @PathVariable String slug) {
+        
+        return categorieService.obtenirCategorieParSlug(slug)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/hierarchie")
+    @Operation(summary = "Obtenir la hiérarchie complète", description = "Récupère toutes les catégories avec leurs sous-catégories")
+    @ApiResponse(responseCode = "200", description = "Hiérarchie récupérée")
+    public ResponseEntity<List<CategorieDto>> obtenirHierarchieComplete() {
+        List<CategorieDto> hierarchie = categorieService.obtenirHierarchieComplete();
+        return ResponseEntity.ok(hierarchie);
+    }
 }
 

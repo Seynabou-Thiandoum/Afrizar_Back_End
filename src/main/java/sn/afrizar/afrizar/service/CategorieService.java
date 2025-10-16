@@ -32,5 +32,12 @@ public interface CategorieService {
     Long getNombreProduitsParCategorie(Long categorieId);
     
     boolean verifierNomDisponible(String nom);
+    
+    // Nouvelles méthodes pour la hiérarchie
+    Optional<CategorieDto> obtenirCategorieParSlug(String slug);
+    
+    List<CategorieDto> obtenirCategoriesRacinesAvecSousCategories();
+    
+    List<CategorieDto> obtenirHierarchieComplete();
 }
 

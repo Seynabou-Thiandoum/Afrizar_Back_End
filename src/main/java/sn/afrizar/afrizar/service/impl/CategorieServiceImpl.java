@@ -212,6 +212,7 @@ public class CategorieServiceImpl implements CategorieService {
         dto.setType(categorie.getType() != null ? categorie.getType().name() : "VETEMENTS");
         dto.setGenre(categorie.getGenre() != null ? categorie.getGenre().name() : "HOMME");
         dto.setImageUrl(categorie.getImageUrl());
+        dto.setSlug(categorie.getSlug());
         dto.setActive(categorie.isActive());
         
         // Parent
@@ -244,8 +245,34 @@ public class CategorieServiceImpl implements CategorieService {
         categorie.setType(dto.getType() != null ? TypeCategorieEnum.valueOf(dto.getType()) : TypeCategorieEnum.VETEMENTS);
         categorie.setGenre(dto.getGenre() != null ? GenreCategorieEnum.valueOf(dto.getGenre()) : GenreCategorieEnum.HOMME);
         categorie.setImageUrl(dto.getImageUrl());
+        categorie.setSlug(dto.getSlug());
         categorie.setActive(dto.isActive());
         return categorie;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CategorieDto> obtenirCategorieParSlug(String slug) {
+        Categorie categorie = categorieRepository.findBySlugAndActiveTrue(slug);
+        return Optional.ofNullable(categorie).map(this::convertirEntityVersDto);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategorieDto> obtenirCategoriesRacinesAvecSousCategories() {
+        return categorieRepository.findCategoriesRacinesAvecSousCategories()
+                .stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategorieDto> obtenirHierarchieComplete() {
+        return categorieRepository.findCategoriesRacinesAvecSousCategories()
+                .stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
     }
 }
 

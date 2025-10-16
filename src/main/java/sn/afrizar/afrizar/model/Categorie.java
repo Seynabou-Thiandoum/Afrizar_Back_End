@@ -41,19 +41,24 @@ public class Categorie {
     // URL de l'image de la catégorie
     private String imageUrl;
     
+    // Slug pour les URLs (ex: "homme", "boubous")
+    @Column(unique = true)
+    private String slug;
+    
+    // Support des sous-catégories (hiérarchie)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Categorie parent;
+    
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Categorie> sousCategories;
+    
     // Catégorie active ou non
     private boolean active = true;
     
     // Relation avec les produits
     @OneToMany(mappedBy = "categorie", fetch = FetchType.LAZY)
     private List<Produit> produits;
-    
-    // Sous-catégories (auto-référence)
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Categorie parent;
-    
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Categorie> sousCategories;
+
 }
 

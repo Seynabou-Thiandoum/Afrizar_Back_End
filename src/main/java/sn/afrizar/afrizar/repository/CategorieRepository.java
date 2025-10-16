@@ -30,5 +30,12 @@ public interface CategorieRepository extends JpaRepository<Categorie, Long> {
     
     @Query("SELECT COUNT(p) FROM Produit p WHERE p.categorie.id = :categorieId AND p.statut = 'ACTIF'")
     Long countProduitsActifsByCategorie(@Param("categorieId") Long categorieId);
+    
+    // Trouver par slug
+    Categorie findBySlugAndActiveTrue(String slug);
+    
+    // Trouver toutes les catégories avec leurs sous-catégories
+    @Query("SELECT c FROM Categorie c LEFT JOIN FETCH c.sousCategories WHERE c.parent IS NULL AND c.active = true ORDER BY c.ordre ASC")
+    List<Categorie> findCategoriesRacinesAvecSousCategories();
 }
 
