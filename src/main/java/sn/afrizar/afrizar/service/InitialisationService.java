@@ -56,7 +56,7 @@ public class InitialisationService implements CommandLineRunner {
             log.info("Aucun compte admin trouvé. Création du compte admin par défaut...");
             
             Utilisateur admin = new Utilisateur();
-            admin.setNom("Admin");
+            admin.setNom("ROLE_ADMIN");
             admin.setPrenom("Afrizar");
             admin.setEmail("admin@afrizar.sn");
             admin.setMotDePasse(passwordEncoder.encode("Admin@123"));

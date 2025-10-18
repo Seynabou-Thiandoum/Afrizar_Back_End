@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/commissions")
+@RequestMapping("/admin/commissions")
 @RequiredArgsConstructor
 @Tag(name = "Commissions", description = "API de gestion des commissions (Admin uniquement)")
 public class CommissionController {
