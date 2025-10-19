@@ -15,6 +15,8 @@ public interface CommandeService {
     
     CommandeDto creerCommande(CreateCommandeDto createCommandeDto);
     
+    CommandeDto creerCommandeDepuisPanier(Long clientId, CreateCommandeDto createCommandeDto);
+    
     Optional<CommandeDto> obtenirCommandeParId(Long id);
     
     Optional<CommandeDto> obtenirCommandeParNumero(String numeroCommande);

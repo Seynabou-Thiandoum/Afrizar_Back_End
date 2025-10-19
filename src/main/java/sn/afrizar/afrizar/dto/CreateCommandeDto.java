@@ -28,7 +28,13 @@ public class CreateCommandeDto {
     @Size(max = 1000, message = "Les notes ne peuvent pas dépasser 1000 caractères")
     private String notes;
     
-    @NotEmpty(message = "Une commande doit contenir au moins un produit")
+    // Informations de livraison (optionnelles pour création depuis panier)
+    private String adresseLivraison;
+    private String ville;
+    private String pays;
+    private String codePostal;
+    
+    // Lignes de commande (optionnel si création depuis panier)
     @Valid
     private List<CreateLigneCommandeDto> lignesCommande;
     

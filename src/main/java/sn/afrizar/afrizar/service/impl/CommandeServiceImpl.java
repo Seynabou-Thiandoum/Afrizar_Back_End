@@ -32,6 +32,8 @@ public class CommandeServiceImpl implements CommandeService {
     private final PaiementRepository paiementRepository;
     private final LivraisonService livraisonService;
     private final CalculPrixService calculPrixService;
+    private final PanierRepository panierRepository;
+    private final PanierService panierService;
     
     @Override
     public CommandeDto creerCommande(CreateCommandeDto createCommandeDto) {
@@ -72,7 +74,7 @@ public class CommandeServiceImpl implements CommandeService {
             ligne.setProduit(produit);
             ligne.setQuantite(ligneDto.getQuantite());
             ligne.setPrixUnitaire(produit.getPrix());
-            ligne.setTaille(ligneDto.getTaille());
+            ligne.setTaille(ligneDto.getTaille() != null ? ligneDto.getTaille().name() : null);
             ligne.setPersonnalisation(ligneDto.getPersonnalisation());
             ligne.setNotes(ligneDto.getNotes());
             
@@ -667,7 +669,7 @@ public class CommandeServiceImpl implements CommandeService {
         
         dto.setQuantite(ligne.getQuantite());
         dto.setPrixUnitaire(ligne.getPrixUnitaire());
-        dto.setTaille(ligne.getTaille());
+        dto.setTaille(ligne.getTaille() != null ? Produit.Taille.valueOf(ligne.getTaille()) : null);
         dto.setPersonnalisation(ligne.getPersonnalisation());
         dto.setSousTotal(ligne.getSousTotal());
         dto.setCommission(ligne.getCommission());
@@ -719,6 +721,162 @@ public class CommandeServiceImpl implements CommandeService {
         dto.setTransporteur(livraison.getTransporteur());
         dto.setDateCreation(livraison.getDateCreation());
         dto.setNotes(livraison.getNotes());
+        
+        return dto;
+    }
+    
+    // ===================== NOUVELLE MÉTHODE POUR CRÉER COMMANDE DEPUIS PANIER =====================
+    
+    @Override
+    public CommandeDto creerCommandeDepuisPanier(Long clientId, CreateCommandeDto createCommandeDto) {
+        log.info("Création d'une commande depuis le panier - Client ID: {}", clientId);
+        
+        // 1. Récupérer le panier du client
+        Panier panier = panierRepository.findByClientIdAndActifTrue(clientId)
+                .orElseThrow(() -> new RuntimeException("Panier vide ou non trouvé"));
+        
+        if (panier.getItems().isEmpty()) {
+            throw new RuntimeException("Impossible de créer une commande avec un panier vide");
+        }
+        
+        // 2. Récupérer le client
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+        
+        // 3. Créer la commande
+        Commande commande = new Commande();
+        commande.setClient(client);
+        commande.setType(createCommandeDto.getType() != null ? createCommandeDto.getType() : Commande.TypeCommande.IMMEDIATE);
+        commande.setDateLivraisonSouhaitee(createCommandeDto.getDateLivraisonSouhaitee());
+        commande.setNotes(createCommandeDto.getNotes());
+        commande.setStatut(Commande.StatutCommande.EN_ATTENTE);
+        commande.setPointsFideliteUtilises(createCommandeDto.getPointsFideliteUtilises() != null ? createCommandeDto.getPointsFideliteUtilises() : 0);
+        
+        // 4. Créer les lignes de commande à partir des items du panier
+        List<LigneCommande> lignesCommande = new ArrayList<>();
+        BigDecimal montantHT = BigDecimal.ZERO;
+        BigDecimal montantCommissionTotal = BigDecimal.ZERO;
+        
+        for (PanierItem panierItem : panier.getItems()) {
+            Produit produit = panierItem.getProduit();
+            
+            // Vérifier le stock
+            if (!verifierStock(produit, panierItem.getQuantite())) {
+                throw new RuntimeException("Stock insuffisant pour le produit: " + produit.getNom() + 
+                                         " (disponible: " + produit.getStock() + ", demandé: " + panierItem.getQuantite() + ")");
+            }
+            
+            // Créer la ligne de commande
+            LigneCommande ligne = new LigneCommande();
+            ligne.setCommande(commande);
+            ligne.setProduit(produit);
+            ligne.setQuantite(panierItem.getQuantite());
+            ligne.setPrixUnitaire(panierItem.getPrixUnitaire());
+            ligne.setTaille(panierItem.getTaille());
+            ligne.setPersonnalisation(panierItem.getOptionsPersonnalisation());
+            
+            // Calculer le sous-total
+            BigDecimal sousTotal = panierItem.getSousTotal();
+            ligne.setSousTotal(sousTotal);
+            
+            // Calculer la commission pour cette ligne
+            DetailPrixDto detailPrix = calculPrixService.calculerPrixFinal(sousTotal, produit.getVendeur().getId());
+            ligne.setCommission(detailPrix.getMontantCommission());
+            
+            lignesCommande.add(ligne);
+            
+            montantHT = montantHT.add(sousTotal);
+            montantCommissionTotal = montantCommissionTotal.add(detailPrix.getMontantCommission());
+            
+            // Décrémenter le stock
+            decremeneterStock(produit, panierItem.getQuantite());
+        }
+        
+        commande.setLignesCommande(lignesCommande);
+        commande.setMontantHT(montantHT);
+        commande.setMontantCommission(montantCommissionTotal);
+        
+        // 5. Calculer les frais de livraison
+        BigDecimal fraisLivraison = BigDecimal.ZERO;
+        if (createCommandeDto.getLivraison() != null) {
+            try {
+                fraisLivraison = livraisonService.calculerCoutLivraison(
+                        BigDecimal.ZERO, // Poids total à calculer
+                        createCommandeDto.getLivraison().getPays(),
+                        createCommandeDto.getLivraison().getVille(),
+                        createCommandeDto.getLivraison().getType()
+                );
+            } catch (Exception e) {
+                log.warn("Impossible de calculer les frais de livraison: {}", e.getMessage());
+            }
+        }
+        commande.setFraisLivraison(fraisLivraison);
+        
+        // 6. Calculer le montant total
+        BigDecimal montantTotal = montantHT.add(fraisLivraison).subtract(
+                BigDecimal.valueOf(createCommandeDto.getPointsFideliteUtilises() != null ? createCommandeDto.getPointsFideliteUtilises() : 0)
+        );
+        commande.setMontantTotal(montantTotal);
+        
+        // 7. Sauvegarder la commande
+        Commande commandeSauvegardee = commandeRepository.save(commande);
+        
+        // 8. Sauvegarder les lignes de commande
+        for (LigneCommande ligne : lignesCommande) {
+            ligne.setCommande(commandeSauvegardee);
+            ligneCommandeRepository.save(ligne);
+        }
+        
+        // 9. Vider le panier
+        panierService.viderPanier(clientId);
+        
+        log.info("Commande créée avec succès - Numéro: {}", commandeSauvegardee.getNumeroCommande());
+        
+        return convertirCommandeVersDto(commandeSauvegardee);
+    }
+    
+    // ===================== MÉTHODE DE CONVERSION =====================
+    
+    private CommandeDto convertirCommandeVersDto(Commande commande) {
+        CommandeDto dto = new CommandeDto();
+        dto.setId(commande.getId());
+        dto.setNumeroCommande(commande.getNumeroCommande());
+        dto.setDateCreation(commande.getDateCreation());
+        dto.setStatut(commande.getStatut());
+        dto.setType(commande.getType());
+        dto.setDateLivraisonSouhaitee(commande.getDateLivraisonSouhaitee());
+        dto.setDateLivraisonEstimee(commande.getDateLivraisonEstimee());
+        dto.setMontantHT(commande.getMontantHT());
+        dto.setMontantCommission(commande.getMontantCommission());
+        dto.setFraisLivraison(commande.getFraisLivraison());
+        dto.setMontantTotal(commande.getMontantTotal());
+        dto.setPointsFideliteUtilises(commande.getPointsFideliteUtilises());
+        dto.setReduction(commande.getReduction());
+        dto.setNotes(commande.getNotes());
+        
+        // Informations client
+        if (commande.getClient() != null) {
+            dto.setClientId(commande.getClient().getId());
+            dto.setNomClient(commande.getClient().getNom() + " " + commande.getClient().getPrenom());
+            dto.setEmailClient(commande.getClient().getEmail());
+        }
+        
+        // Convertir les lignes de commande
+        if (commande.getLignesCommande() != null) {
+            dto.setLignesCommande(commande.getLignesCommande().stream()
+                    .map(this::convertirLigneCommandeVersDto)
+                    .collect(Collectors.toList()));
+        }
+        
+        // Paiement
+        if (commande.getPaiement() != null) {
+            dto.setPaiement(convertirPaiementVersDto(commande.getPaiement()));
+        }
+        
+        // Livraison
+        if (commande.getLivraison() != null) {
+            dto.setLivraison(convertirLivraisonVersDto(commande.getLivraison()));
+        }
         
         return dto;
     }

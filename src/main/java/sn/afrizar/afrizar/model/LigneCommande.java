@@ -33,9 +33,9 @@ public class LigneCommande {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal prixUnitaire;
     
-    // Taille sélectionnée
-    @Enumerated(EnumType.STRING)
-    private Produit.Taille taille;
+    // Taille sélectionnée (stockée en String pour flexibilité)
+    @Column(length = 50)
+    private String taille;
     
     // Options de personnalisation sélectionnées (JSON)
     @Column(length = 1000)
