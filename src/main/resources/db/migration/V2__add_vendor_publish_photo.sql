@@ -11,3 +11,5 @@ ALTER TABLE utilisateur ADD COLUMN IF NOT EXISTS photo_url VARCHAR(500);
 COMMENT ON COLUMN utilisateur.publie IS 'Indique si le vendeur est publié sur la page publique';
 COMMENT ON COLUMN utilisateur.photo_url IS 'URL de la photo de profil du vendeur (optionnel)';
 
+
+

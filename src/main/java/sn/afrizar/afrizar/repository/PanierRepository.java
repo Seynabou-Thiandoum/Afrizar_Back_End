@@ -25,3 +25,5 @@ public interface PanierRepository extends JpaRepository<Panier, Long> {
     Long countItemsByClientId(@Param("clientId") Long clientId);
 }
 
+
+

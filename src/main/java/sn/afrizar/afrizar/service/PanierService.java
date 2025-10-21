@@ -41,3 +41,5 @@ public interface PanierService {
     int obtenirNombreArticles(Long clientId);
 }
 
+
+

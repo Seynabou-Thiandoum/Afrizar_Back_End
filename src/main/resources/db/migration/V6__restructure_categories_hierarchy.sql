@@ -35,3 +35,5 @@ INSERT INTO categories (nom, slug, description, image_url, parent_id, type, genr
 INSERT INTO categories (nom, slug, description, image_url, parent_id, type, genre, ordre, active) VALUES
 ('Garçons', 'garcons', 'Vêtements pour garçons', NULL, (SELECT id FROM categories WHERE slug = 'enfant'), 'VETEMENTS', 'ENFANT', 1, true),
 ('Filles', 'filles', 'Vêtements pour filles', NULL, (SELECT id FROM categories WHERE slug = 'enfant'), 'VETEMENTS', 'ENFANT', 2, true);
+
+

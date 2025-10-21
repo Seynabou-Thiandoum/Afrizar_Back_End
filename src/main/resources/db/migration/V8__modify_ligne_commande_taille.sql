@@ -9,3 +9,5 @@ ALTER COLUMN taille TYPE VARCHAR(50);
 -- Commentaire
 COMMENT ON COLUMN ligne_commandes.taille IS 'Taille sélectionnée (format texte pour flexibilité)';
 
+
+

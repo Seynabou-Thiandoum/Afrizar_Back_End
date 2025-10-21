@@ -22,9 +22,16 @@ public class Paiement {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal montant;
     
+    // Ancien champ méthode (conservé pour compatibilité)
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = true)
+    @Deprecated
     private MethodePaiement methode;
+    
+    // Nouveau: Référence vers le mode de paiement configurable
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "mode_paiement_id")
+    private ModePaiement modePaiement;
     
     @Enumerated(EnumType.STRING)
     private StatutPaiement statut = StatutPaiement.EN_ATTENTE;

@@ -29,3 +29,5 @@ public class FraisLivraisonDto {
     private BigDecimal poidsMax;
     private String zone;
 }
+
+

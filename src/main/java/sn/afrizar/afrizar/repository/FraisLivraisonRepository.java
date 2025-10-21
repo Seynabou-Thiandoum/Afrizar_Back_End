@@ -26,3 +26,5 @@ public interface FraisLivraisonRepository extends JpaRepository<FraisLivraison, 
            "ORDER BY f.type ASC")
     List<FraisLivraison> findApplicableByPoids(java.math.BigDecimal poids);
 }
+
+

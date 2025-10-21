@@ -41,3 +41,5 @@ COMMENT ON TABLE panier_items IS 'Table des articles dans les paniers';
 COMMENT ON COLUMN paniers.actif IS 'Indique si le panier est actif ou archivé';
 COMMENT ON COLUMN panier_items.prix_unitaire IS 'Prix unitaire au moment de l''ajout au panier';
 
+
+

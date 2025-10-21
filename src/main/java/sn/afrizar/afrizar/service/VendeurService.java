@@ -40,12 +40,6 @@ public interface VendeurService {
     
     VendeurDto annulerVerificationVendeur(Long vendeurId);
     
-    VendeurDto publierVendeur(Long vendeurId);
-    
-    VendeurDto depublierVendeur(Long vendeurId);
-    
-    List<VendeurDto> obtenirVendeursPublies();
-    
     VendeurDto definirCommissionPersonnalisee(Long vendeurId, BigDecimal tauxCommission);
     
     VendeurDto ajouterEvaluation(Long vendeurId, BigDecimal note);
@@ -68,5 +62,12 @@ public interface VendeurService {
     long compterVendeursNonVerifies();
     
     VendeurDto activerVendeur(Long id);
+    
+    // Méthodes de publication
+    VendeurDto publierVendeur(Long vendeurId);
+    
+    VendeurDto depublierVendeur(Long vendeurId);
+    
+    List<VendeurDto> obtenirVendeursPublies();
 }
 

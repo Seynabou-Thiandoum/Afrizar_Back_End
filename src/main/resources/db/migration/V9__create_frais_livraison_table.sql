@@ -29,3 +29,5 @@ CREATE INDEX idx_frais_livraison_type ON frais_livraison(type);
 CREATE INDEX idx_frais_livraison_actif ON frais_livraison(actif);
 CREATE INDEX idx_frais_livraison_zone ON frais_livraison(zone);
 CREATE INDEX idx_frais_livraison_poids ON frais_livraison(poids_min, poids_max);
+
+

@@ -41,3 +41,4 @@ public class TypeCategorie {
     @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CategorieCombinaison> combinaisons;
 }
+

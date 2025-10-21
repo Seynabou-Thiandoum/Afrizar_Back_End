@@ -12,3 +12,5 @@ public interface FavoriService {
     long compterFavoris(Long clientId);
 }
 
+
+

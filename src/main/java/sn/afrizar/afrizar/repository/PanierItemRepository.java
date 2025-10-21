@@ -29,3 +29,5 @@ public interface PanierItemRepository extends JpaRepository<PanierItem, Long> {
     void deleteByPanierId(Long panierId);
 }
 
+
+

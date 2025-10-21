@@ -17,3 +17,5 @@ public interface FavoriRepository extends JpaRepository<Favori, Long> {
     long countByClient(Utilisateur client);
 }
 
+
+

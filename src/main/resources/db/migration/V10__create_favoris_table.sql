@@ -15,3 +15,5 @@ CREATE INDEX idx_favoris_client ON favoris(client_id);
 CREATE INDEX idx_favoris_produit ON favoris(produit_id);
 CREATE INDEX idx_favoris_date_ajout ON favoris(date_ajout DESC);
 
+
+
