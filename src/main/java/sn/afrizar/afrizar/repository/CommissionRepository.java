@@ -25,5 +25,7 @@ public interface CommissionRepository extends JpaRepository<Commission, Long> {
     List<Commission> findCommissionsApplicables(@Param("montant") BigDecimal montant);
     
     boolean existsBySeuilMinAndSeuilMaxAndActiveTrue(BigDecimal seuilMin, BigDecimal seuilMax);
+    
+    long countByActiveTrue();
 }
 

@@ -63,3 +63,4 @@ public interface CategorieCombinaisonRepository extends JpaRepository<CategorieC
         @Param("typeEnum") sn.afrizar.afrizar.model.TypeCategorieEnum typeEnum
     );
 }
+

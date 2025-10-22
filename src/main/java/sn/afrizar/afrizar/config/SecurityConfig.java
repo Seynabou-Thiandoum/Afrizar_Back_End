@@ -72,6 +72,7 @@ public class SecurityConfig {
                 // Endpoints de lecture publique
                 .requestMatchers("GET", "/api/produits/**").permitAll()
                 .requestMatchers("GET", "/api/categories/**").permitAll()
+                .requestMatchers("GET", "/api/files/**").permitAll()
                 
                 // Endpoints pour les clients authentifiés
                 .requestMatchers("/api/clients/**").hasAnyRole("CLIENT", "ADMIN")
@@ -84,8 +85,13 @@ public class SecurityConfig {
                 .requestMatchers("PUT", "/api/produits/**").hasAnyRole("VENDEUR", "ADMIN")
                 .requestMatchers("DELETE", "/api/produits/**").hasAnyRole("VENDEUR", "ADMIN")
                 
+                // Endpoints pour l'upload de fichiers
+                .requestMatchers("POST", "/api/files/**").hasAnyRole("VENDEUR", "ADMIN")
+                .requestMatchers("DELETE", "/api/files/**").hasRole("ADMIN")
+                
                 // Endpoints pour les admins
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/commissions/**").hasRole("ADMIN")
                 .requestMatchers("/api/statistiques/**").hasAnyRole("ADMIN", "SUPPORT")
                 .requestMatchers("/api/calculs/**").permitAll()
                 

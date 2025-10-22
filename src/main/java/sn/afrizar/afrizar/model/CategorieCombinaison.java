@@ -33,3 +33,4 @@ public class CategorieCombinaison {
     // Combinaison active ou non
     private boolean active = true;
 }
+

@@ -18,9 +18,9 @@ public interface CommissionService {
     
     void supprimerCommission(Long id);
     
-    void activerCommission(Long id);
+    Commission activerCommission(Long id);
     
-    void desactiverCommission(Long id);
+    Commission desactiverCommission(Long id);
     
     /**
      * Calcule la commission applicable pour un montant donné
@@ -41,5 +41,15 @@ public interface CommissionService {
      * Initialise les tranches de commission par défaut selon le cahier des charges
      */
     void initialiserCommissionsParDefaut();
+    
+    /**
+     * Simule le calcul de commission pour un montant donné
+     */
+    java.util.Map<String, Object> simulerCommission(BigDecimal montant);
+    
+    /**
+     * Obtient les statistiques d'utilisation des commissions
+     */
+    java.util.Map<String, Object> obtenirStatistiques();
 }
 

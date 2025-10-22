@@ -9,7 +9,9 @@ import sn.afrizar.afrizar.repository.CommissionRepository;
 import sn.afrizar.afrizar.service.CommissionService;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -82,29 +84,31 @@ public class CommissionServiceImpl implements CommissionService {
     }
     
     @Override
-    public void activerCommission(Long id) {
+    public Commission activerCommission(Long id) {
         log.info("Activation de la tranche de commission avec ID: {}", id);
         
         Commission commission = commissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commission non trouvée avec ID: " + id));
         
         commission.setActive(true);
-        commissionRepository.save(commission);
+        Commission commissionActivee = commissionRepository.save(commission);
         
         log.info("Tranche de commission activée avec succès");
+        return commissionActivee;
     }
     
     @Override
-    public void desactiverCommission(Long id) {
+    public Commission desactiverCommission(Long id) {
         log.info("Désactivation de la tranche de commission avec ID: {}", id);
         
         Commission commission = commissionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commission non trouvée avec ID: " + id));
         
         commission.setActive(false);
-        commissionRepository.save(commission);
+        Commission commissionDesactivee = commissionRepository.save(commission);
         
         log.info("Tranche de commission désactivée avec succès");
+        return commissionDesactivee;
     }
     
     @Override
@@ -197,5 +201,69 @@ public class CommissionServiceImpl implements CommissionService {
         commissionRepository.save(tranche4);
         
         log.info("Tranches de commission par défaut créées avec succès");
+    }
+    
+    @Override
+    public Map<String, Object> simulerCommission(BigDecimal montant) {
+        log.info("Simulation de commission pour le montant: {}", montant);
+        
+        Map<String, Object> simulation = new HashMap<>();
+        simulation.put("montant", montant);
+        
+        Optional<Commission> commissionOpt = trouverCommissionApplicable(montant);
+        if (commissionOpt.isPresent()) {
+            Commission commission = commissionOpt.get();
+            BigDecimal montantCommission = commission.calculerCommission(montant);
+            BigDecimal prixFinal = montant.add(montantCommission);
+            
+            simulation.put("trancheApplicable", commission);
+            simulation.put("pourcentageCommission", commission.getPourcentage());
+            simulation.put("montantCommission", montantCommission);
+            simulation.put("prixFinal", prixFinal);
+            simulation.put("devise", "FCFA");
+        } else {
+            simulation.put("erreur", "Aucune tranche de commission applicable trouvée");
+        }
+        
+        return simulation;
+    }
+    
+    @Override
+    public Map<String, Object> obtenirStatistiques() {
+        log.info("Récupération des statistiques des commissions");
+        
+        Map<String, Object> statistiques = new HashMap<>();
+        
+        // Nombre total de tranches
+        long nombreTotalTranches = commissionRepository.count();
+        long nombreTranchesActives = commissionRepository.countByActiveTrue();
+        long nombreTranchesInactives = nombreTotalTranches - nombreTranchesActives;
+        
+        statistiques.put("nombreTotalTranches", nombreTotalTranches);
+        statistiques.put("nombreTranchesActives", nombreTranchesActives);
+        statistiques.put("nombreTranchesInactives", nombreTranchesInactives);
+        
+        // Tranches actives
+        List<Commission> tranchesActives = obtenirToutesLesCommissionsActives();
+        statistiques.put("tranchesActives", tranchesActives);
+        
+        // Plage de montants couverte
+        if (!tranchesActives.isEmpty()) {
+            BigDecimal montantMin = tranchesActives.stream()
+                .map(Commission::getSeuilMin)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+            
+            BigDecimal montantMax = tranchesActives.stream()
+                .filter(c -> c.getSeuilMax() != null)
+                .map(Commission::getSeuilMax)
+                .max(BigDecimal::compareTo)
+                .orElse(null);
+            
+            statistiques.put("montantMinimum", montantMin);
+            statistiques.put("montantMaximum", montantMax);
+        }
+        
+        return statistiques;
     }
 }

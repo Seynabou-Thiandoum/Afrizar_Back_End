@@ -180,3 +180,4 @@ DROP TEMPORARY TABLE temp_category_mapping;
 
 -- 12. Message de fin
 SELECT 'Migration terminée avec succès!' as status;
+

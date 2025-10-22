@@ -42,3 +42,4 @@ public interface TypeCategorieService {
     // Obtenir le nombre de genres qui utilisent ce type
     Long getNombreGenresParType(Long typeId);
 }
+

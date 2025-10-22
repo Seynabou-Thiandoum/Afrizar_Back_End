@@ -40,3 +40,4 @@ public interface TypeCategorieRepository extends JpaRepository<TypeCategorie, Lo
            "ORDER BY COUNT(c.id) DESC, t.ordre ASC")
     List<TypeCategorie> findTypesOrderByUsage();
 }
+

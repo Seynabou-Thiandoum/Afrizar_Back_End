@@ -40,3 +40,4 @@ public interface GenreCategorieRepository extends JpaRepository<GenreCategorie, 
            "ORDER BY COUNT(c.id) DESC, g.ordre ASC")
     List<GenreCategorie> findGenresOrderByUsage();
 }
+

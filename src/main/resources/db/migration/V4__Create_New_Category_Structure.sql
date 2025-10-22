@@ -148,3 +148,4 @@ JOIN genres_categories g ON c.genre_id = g.id
 JOIN types_categories t ON c.type_id = t.id
 WHERE c.active = TRUE
 ORDER BY g.type, g.ordre, c.ordre;
+

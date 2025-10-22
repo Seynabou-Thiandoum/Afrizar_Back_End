@@ -20,3 +20,4 @@ public class CategorieCombinaisonDto {
     // Pour l'affichage
     private String affichage; // "Homme - Boubous"
 }
+

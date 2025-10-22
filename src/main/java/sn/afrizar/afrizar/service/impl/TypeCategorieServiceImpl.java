@@ -188,3 +188,4 @@ public class TypeCategorieServiceImpl implements TypeCategorieService {
         return type;
     }
 }
+

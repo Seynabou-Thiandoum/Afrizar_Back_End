@@ -20,3 +20,4 @@ public class TypeCategorieDto {
     // Statistiques
     private Integer nombreGenres; // Nombre de genres qui utilisent ce type
 }
+

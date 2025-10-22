@@ -185,3 +185,4 @@ public class GenreCategorieController {
         return ResponseEntity.ok(disponible);
     }
 }
+

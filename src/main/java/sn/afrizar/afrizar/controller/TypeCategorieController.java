@@ -185,3 +185,4 @@ public class TypeCategorieController {
         return ResponseEntity.ok(disponible);
     }
 }
+
