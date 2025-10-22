@@ -65,8 +65,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Endpoints publics (pas d'authentification requise)
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/files/**").permitAll()
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
@@ -74,11 +72,6 @@ public class SecurityConfig {
                 // Endpoints de lecture publique
                 .requestMatchers("GET", "/api/produits/**").permitAll()
                 .requestMatchers("GET", "/api/categories/**").permitAll()
-                
-                // Nouveaux endpoints de gestion des catégories (admin uniquement)
-                .requestMatchers("/api/types-categories/**").hasRole("ADMIN")
-                .requestMatchers("/api/genres-categories/**").hasRole("ADMIN")
-                .requestMatchers("/api/categories-combinaisons/**").hasRole("ADMIN")
                 
                 // Endpoints pour les clients authentifiés
                 .requestMatchers("/api/clients/**").hasAnyRole("CLIENT", "ADMIN")
@@ -94,7 +87,7 @@ public class SecurityConfig {
                 // Endpoints pour les admins
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/statistiques/**").hasAnyRole("ADMIN", "SUPPORT")
-                .requestMatchers("/api/calcul/**").hasAnyRole("ADMIN", "SUPPORT")
+                .requestMatchers("/api/calculs/**").permitAll()
                 
                 // Toutes les autres requêtes nécessitent une authentification
                 .anyRequest().authenticated()

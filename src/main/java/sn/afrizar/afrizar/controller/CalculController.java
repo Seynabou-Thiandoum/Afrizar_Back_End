@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/calculs")
+@RequestMapping("/api/calculs")
 @RequiredArgsConstructor
 @Tag(name = "Calculs", description = "API de calcul des prix et frais (commissions, expédition)")
 public class CalculController {

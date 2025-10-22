@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ import sn.afrizar.afrizar.service.ModePaiementService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -32,7 +34,14 @@ public class ModePaiementController {
     @GetMapping("/public/modes-paiement")
     @Operation(summary = "Récupérer tous les modes de paiement actifs (public)")
     public ResponseEntity<List<ModePaiementDto>> getActivesModesPaiement() {
-        return ResponseEntity.ok(modePaiementService.getActivesModesPaiement());
+        try {
+            List<ModePaiementDto> modes = modePaiementService.getActivesModesPaiement();
+            log.info("✅ Récupération de {} modes de paiement actifs", modes.size());
+            return ResponseEntity.ok(modes);
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de la récupération des modes de paiement: {}", e.getMessage(), e);
+            return ResponseEntity.ok(List.of()); // Retourner une liste vide en cas d'erreur
+        }
     }
     
     @GetMapping("/public/modes-paiement/code/{code}")
@@ -73,7 +82,8 @@ public class ModePaiementController {
     public ResponseEntity<ModePaiementDto> createModePaiement(
             @Valid @RequestBody ModePaiementCreateDto dto,
             Authentication authentication) {
-        String username = authentication.getName();
+        sn.afrizar.afrizar.model.Utilisateur utilisateur = (sn.afrizar.afrizar.model.Utilisateur) authentication.getPrincipal();
+        String username = utilisateur.getEmail();
         ModePaiementDto created = modePaiementService.createModePaiement(dto, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -86,7 +96,8 @@ public class ModePaiementController {
             @PathVariable Long id,
             @Valid @RequestBody ModePaiementUpdateDto dto,
             Authentication authentication) {
-        String username = authentication.getName();
+        sn.afrizar.afrizar.model.Utilisateur utilisateur = (sn.afrizar.afrizar.model.Utilisateur) authentication.getPrincipal();
+        String username = utilisateur.getEmail();
         ModePaiementDto updated = modePaiementService.updateModePaiement(id, dto, username);
         return ResponseEntity.ok(updated);
     }
@@ -99,7 +110,8 @@ public class ModePaiementController {
             @PathVariable Long id,
             @Valid @RequestBody ModePaiementConfigDto configDto,
             Authentication authentication) {
-        String username = authentication.getName();
+        sn.afrizar.afrizar.model.Utilisateur utilisateur = (sn.afrizar.afrizar.model.Utilisateur) authentication.getPrincipal();
+        String username = utilisateur.getEmail();
         modePaiementService.updateConfiguration(id, configDto, username);
         return ResponseEntity.ok().build();
     }
@@ -112,7 +124,8 @@ public class ModePaiementController {
             @PathVariable Long id,
             @RequestParam Boolean actif,
             Authentication authentication) {
-        String username = authentication.getName();
+        sn.afrizar.afrizar.model.Utilisateur utilisateur = (sn.afrizar.afrizar.model.Utilisateur) authentication.getPrincipal();
+        String username = utilisateur.getEmail();
         modePaiementService.toggleActif(id, actif, username);
         return ResponseEntity.ok().build();
     }

@@ -25,7 +25,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/commandes")
+@RequestMapping("/api/commandes")
 @RequiredArgsConstructor
 @Tag(name = "Commandes", description = "API de gestion des commandes")
 public class CommandeController {

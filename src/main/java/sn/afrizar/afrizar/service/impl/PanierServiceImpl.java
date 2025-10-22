@@ -28,7 +28,7 @@ public class PanierServiceImpl implements PanierService {
     private final ProduitRepository produitRepository;
     
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PanierDto obtenirPanierClient(Long clientId) {
         log.info("Récupération du panier pour le client ID: {}", clientId);
         

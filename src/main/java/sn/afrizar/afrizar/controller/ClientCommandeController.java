@@ -35,7 +35,7 @@ public class ClientCommandeController {
     private final CommandeService commandeService;
     
     @PostMapping("/depuis-panier")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Créer une commande depuis le panier", description = "Transforme le panier en commande")
     public ResponseEntity<CommandeDto> creerCommandeDepuisPanier(
             @Valid @RequestBody CreateCommandeDto createCommandeDto,
@@ -49,7 +49,7 @@ public class ClientCommandeController {
     }
     
     @GetMapping("/mes-commandes")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Mes commandes", description = "Récupère toutes les commandes du client connecté")
     public ResponseEntity<Page<CommandeDto>> obtenirMesCommandes(
             @RequestParam(defaultValue = "0") int page,
@@ -66,7 +66,7 @@ public class ClientCommandeController {
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Détails d'une commande", description = "Récupère les détails d'une commande spécifique")
     public ResponseEntity<CommandeDto> obtenirDetailsCommande(
             @PathVariable Long id,
@@ -86,7 +86,7 @@ public class ClientCommandeController {
     }
     
     @PostMapping("/{id}/annuler")
-    @PreAuthorize("hasRole('CLIENT')")
+    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
     @Operation(summary = "Annuler une commande", description = "Permet au client d'annuler sa commande")
     public ResponseEntity<CommandeDto> annulerCommande(
             @PathVariable Long id,
@@ -98,7 +98,11 @@ public class ClientCommandeController {
         
         // Vérifier que la commande appartient au client
         Optional<CommandeDto> commandeOpt = commandeService.obtenirCommandeParId(id);
-        if (commandeOpt.isEmpty() || !commandeOpt.get().getClientId().equals(clientId)) {
+        if (commandeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        if (!commandeOpt.get().getClientId().equals(clientId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         
@@ -106,16 +110,24 @@ public class ClientCommandeController {
         return ResponseEntity.ok(commande);
     }
     
-    // ===================== MÉTHODE UTILITAIRE =====================
-    
+    /**
+     * Méthode utilitaire pour extraire l'ID du client depuis l'authentification
+     */
     private Long getClientId(Authentication authentication) {
         Utilisateur utilisateur = (Utilisateur) authentication.getPrincipal();
         
-        if (!(utilisateur instanceof Client)) {
-            throw new RuntimeException("Seuls les clients peuvent passer des commandes");
+        // Si c'est un client, retourner son ID
+        if (utilisateur instanceof Client) {
+            return utilisateur.getId();
         }
         
-        return utilisateur.getId();
+        // Si c'est un admin (pour tests), retourner son ID aussi
+        if (utilisateur.getRole() == Utilisateur.Role.ADMIN) {
+            log.info("⚠️ Admin {} utilise les endpoints client pour tests", utilisateur.getEmail());
+            return utilisateur.getId();
+        }
+        
+        log.error("❌ L'utilisateur {} n'est ni un client ni un admin", utilisateur.getEmail());
+        throw new RuntimeException("Seuls les clients peuvent passer des commandes");
     }
 }
-
