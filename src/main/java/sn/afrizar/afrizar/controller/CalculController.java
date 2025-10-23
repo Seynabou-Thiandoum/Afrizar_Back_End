@@ -12,11 +12,14 @@ import sn.afrizar.afrizar.dto.DetailPrixDto;
 import sn.afrizar.afrizar.model.Livraison;
 import sn.afrizar.afrizar.service.CalculPrixService;
 import sn.afrizar.afrizar.service.LivraisonService;
+import sn.afrizar.afrizar.service.ConfigurationLivraisonService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import sn.afrizar.afrizar.dto.ConfigurationLivraisonDto;
 
 @Slf4j
 @RestController
@@ -27,6 +30,7 @@ public class CalculController {
     
     private final CalculPrixService calculPrixService;
     private final LivraisonService livraisonService;
+    private final ConfigurationLivraisonService configurationLivraisonService;
     
     @GetMapping("/prix")
     @Operation(summary = "Calculer le prix final avec commission", description = "Calcule le prix final d'un produit avec détail transparent des commissions")
@@ -84,7 +88,7 @@ public class CalculController {
         resultat.put("type", type);
         
         // Coût par kg
-        BigDecimal coutParKg = cout.divide(poids, 2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal coutParKg = cout.divide(poids, 2, java.math.RoundingMode.HALF_UP);
         resultat.put("coutParKg", coutParKg);
         
         return ResponseEntity.ok(resultat);
@@ -114,7 +118,7 @@ public class CalculController {
             
             // Calculer le rapport qualité/prix
             long delai = dateLivraison.toEpochDay() - LocalDate.now().toEpochDay();
-            BigDecimal rapport = cout.divide(BigDecimal.valueOf(delai == 0 ? 1 : delai), 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal rapport = cout.divide(BigDecimal.valueOf(delai == 0 ? 1 : delai), 2, java.math.RoundingMode.HALF_UP);
             option.put("rapportQualitePrix", rapport);
             
             comparaison.put(type.name(), option);
@@ -190,11 +194,82 @@ public class CalculController {
         return ResponseEntity.ok(prixTotal);
     }
     
-    @GetMapping("/tarifs-expedition")
+    @GetMapping("/expedition/grille-tarifs")
     @Operation(summary = "Obtenir la grille des tarifs d'expédition", description = "Affiche tous les tarifs d'expédition par destination et type")
     @ApiResponse(responseCode = "200", description = "Grille des tarifs récupérée")
     public ResponseEntity<Map<String, Object>> obtenirGrilleTarifs() {
         
+        Map<String, Object> grille = new HashMap<>();
+        
+        try {
+            // Utiliser les configurations de l'admin pour générer la grille
+            List<ConfigurationLivraisonDto> configurations = configurationLivraisonService.obtenirConfigurationsActives();
+            
+            if (configurations.isEmpty()) {
+                log.warn("Aucune configuration de livraison trouvée, utilisation des tarifs par défaut");
+                return obtenirGrilleTarifsParDefaut();
+            }
+            
+            // Organiser les configurations par pays et type
+            Map<String, Map<String, ConfigurationLivraisonDto>> configurationsParPays = new HashMap<>();
+            
+            for (ConfigurationLivraisonDto config : configurations) {
+                String pays = config.getPays();
+                String type = config.getType().name();
+                
+                configurationsParPays.computeIfAbsent(pays, k -> new HashMap<>()).put(type, config);
+            }
+            
+            // Générer la grille à partir des configurations
+            for (Map.Entry<String, Map<String, ConfigurationLivraisonDto>> entry : configurationsParPays.entrySet()) {
+                String pays = entry.getKey();
+                Map<String, ConfigurationLivraisonDto> configsPays = entry.getValue();
+                
+                Map<String, Object> tarifsDestination = new HashMap<>();
+                
+                for (Map.Entry<String, ConfigurationLivraisonDto> configEntry : configsPays.entrySet()) {
+                    String type = configEntry.getKey();
+                    ConfigurationLivraisonDto config = configEntry.getValue();
+                    
+                    Map<String, Object> detailType = new HashMap<>();
+                    detailType.put("coutPar1kg", config.getTarifBase().add(config.getTarifParKg()));
+                    detailType.put("delaiJours", config.getDelaiJours());
+                    detailType.put("description", String.format("%,.0f FCFA/kg - %d jours", 
+                            config.getTarifBase().add(config.getTarifParKg()), config.getDelaiJours()));
+                    detailType.put("tarifBase", config.getTarifBase());
+                    detailType.put("tarifParKg", config.getTarifParKg());
+                    detailType.put("delaiMinJours", config.getDelaiMinJours());
+                    detailType.put("delaiMaxJours", config.getDelaiMaxJours());
+                    detailType.put("minimumFacturation", config.getMinimumFacturation());
+                    
+                    tarifsDestination.put(type, detailType);
+                }
+                
+                grille.put(pays, tarifsDestination);
+            }
+            
+            // Ajouter des notes explicatives
+            Map<String, String> notes = new HashMap<>();
+            notes.put("source", "Configurations administrateur");
+            notes.put("devise", "Tous les prix sont en FCFA");
+            notes.put("description", "Tarifs calculés à partir des configurations définies par l'administrateur");
+            
+            grille.put("notes", notes);
+            
+            log.info("Grille des tarifs générée à partir des configurations admin: {} pays configurés", configurationsParPays.size());
+            
+        } catch (Exception e) {
+            log.error("Erreur lors de la génération de la grille des tarifs: {}", e.getMessage());
+            return obtenirGrilleTarifsParDefaut();
+        }
+        
+        return ResponseEntity.ok(grille);
+    }
+    
+    /**
+     * Méthode de fallback pour générer la grille des tarifs par défaut
+     */
+    private ResponseEntity<Map<String, Object>> obtenirGrilleTarifsParDefaut() {
         Map<String, Object> grille = new HashMap<>();
         
         // Créer des exemples pour 1 kg vers différentes destinations
@@ -223,6 +298,7 @@ public class CalculController {
         
         // Ajouter des notes explicatives
         Map<String, String> notes = new HashMap<>();
+        notes.put("source", "Tarifs par défaut");
         notes.put("reduction_gros_colis", "Réduction de 10% pour les colis > 5 kg");
         notes.put("supplement_ville_eloignee", "Supplément de 15% pour certaines villes éloignées");
         notes.put("minimum_facturation", "Minimum 1000 FCFA (Sénégal) / 5000 FCFA (International)");

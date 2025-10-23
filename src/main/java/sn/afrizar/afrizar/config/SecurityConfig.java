@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .requestMatchers("GET", "/api/produits/**").permitAll()
                 .requestMatchers("GET", "/api/categories/**").permitAll()
                 .requestMatchers("GET", "/api/files/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
                 
                 // Endpoints pour les clients authentifiés
                 .requestMatchers("/api/clients/**").hasAnyRole("CLIENT", "ADMIN")

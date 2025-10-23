@@ -11,6 +11,7 @@ import sn.afrizar.afrizar.model.Livraison;
 import sn.afrizar.afrizar.repository.CommandeRepository;
 import sn.afrizar.afrizar.repository.LivraisonRepository;
 import sn.afrizar.afrizar.service.LivraisonService;
+import sn.afrizar.afrizar.service.ConfigurationLivraisonService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class LivraisonServiceImpl implements LivraisonService {
     
     private final LivraisonRepository livraisonRepository;
     private final CommandeRepository commandeRepository;
+    private final ConfigurationLivraisonService configurationLivraisonService;
     
     // Tarifs de base par kg selon la destination et le type
     private static final Map<String, Map<Livraison.TypeLivraison, BigDecimal>> TARIFS_BASE = new HashMap<>();
@@ -132,6 +134,28 @@ public class LivraisonServiceImpl implements LivraisonService {
         log.debug("Calcul du coût de livraison: poids={} kg, pays={}, ville={}, type={}", 
                  poids, pays, ville, type);
         
+        try {
+            // Utiliser les configurations de l'admin
+            BigDecimal coutFinal = configurationLivraisonService.obtenirTarifLivraison(pays, type, poids);
+            
+            log.debug("Coût de livraison calculé via configurations admin: {} FCFA", coutFinal);
+            
+            return coutFinal;
+        } catch (Exception e) {
+            log.warn("Erreur lors du calcul via configurations admin, utilisation des tarifs par défaut: {}", e.getMessage());
+            
+            // Fallback vers les tarifs hardcodés si les configurations ne sont pas disponibles
+            return calculerCoutLivraisonFallback(poids, pays, ville, type);
+        }
+    }
+    
+    /**
+     * Méthode de fallback utilisant les tarifs hardcodés
+     */
+    private BigDecimal calculerCoutLivraisonFallback(BigDecimal poids, String pays, String ville, Livraison.TypeLivraison type) {
+        log.debug("Calcul du coût de livraison (fallback): poids={} kg, pays={}, ville={}, type={}", 
+                 poids, pays, ville, type);
+        
         // Rechercher les tarifs pour le pays
         Map<Livraison.TypeLivraison, BigDecimal> tarifsPayS = obtenirTarifsPays(pays);
         BigDecimal tarifParKg = tarifsPayS.get(type);
@@ -147,7 +171,7 @@ public class LivraisonServiceImpl implements LivraisonService {
         // Appliquer des ajustements selon les règles métier
         BigDecimal coutFinal = appliquerAjustements(coutBase, poids, pays, ville, type);
         
-        log.debug("Coût de livraison calculé: {} FCFA (base: {} FCFA)", coutFinal, coutBase);
+        log.debug("Coût de livraison calculé (fallback): {} FCFA (base: {} FCFA)", coutFinal, coutBase);
         
         return coutFinal;
     }
@@ -236,33 +260,50 @@ public class LivraisonServiceImpl implements LivraisonService {
         LocalDate aujourdhui = LocalDate.now();
         int joursDelai;
         
-        if ("SENEGAL".equalsIgnoreCase(pays) || "SN".equalsIgnoreCase(pays)) {
-            // Délais pour le Sénégal
-            switch (type) {
-                case EXPRESS -> joursDelai = 1;
-                case STANDARD -> joursDelai = 3;
-                case ECONOMIQUE -> joursDelai = 5;
-                default -> joursDelai = 3;
-            }
-        } else if (TARIFS_BASE.get("AFRIQUE").equals(obtenirTarifsPays(pays))) {
-            // Autres pays d'Afrique
-            switch (type) {
-                case EXPRESS -> joursDelai = 5;
-                case STANDARD -> joursDelai = 10;
-                case ECONOMIQUE -> joursDelai = 15;
-                default -> joursDelai = 10;
-            }
-        } else {
-            // International
-            switch (type) {
-                case EXPRESS -> joursDelai = 7;
-                case STANDARD -> joursDelai = 14;
-                case ECONOMIQUE -> joursDelai = 21;
-                default -> joursDelai = 14;
-            }
+        try {
+            // Utiliser les configurations de l'admin
+            joursDelai = configurationLivraisonService.obtenirDelaiLivraison(pays, type);
+            
+            log.debug("Délai de livraison calculé via configurations admin: {} jours", joursDelai);
+        } catch (Exception e) {
+            log.warn("Erreur lors du calcul du délai via configurations admin, utilisation des délais par défaut: {}", e.getMessage());
+            
+            // Fallback vers les délais hardcodés
+            joursDelai = calculerDelaiLivraisonFallback(pays, type);
         }
         
         return aujourdhui.plusDays(joursDelai);
+    }
+    
+    /**
+     * Méthode de fallback pour calculer les délais de livraison
+     */
+    private int calculerDelaiLivraisonFallback(String pays, Livraison.TypeLivraison type) {
+        if ("SENEGAL".equalsIgnoreCase(pays) || "SN".equalsIgnoreCase(pays)) {
+            // Délais pour le Sénégal
+            return switch (type) {
+                case EXPRESS -> 1;
+                case STANDARD -> 3;
+                case ECONOMIQUE -> 5;
+                default -> 3;
+            };
+        } else if (TARIFS_BASE.get("AFRIQUE").equals(obtenirTarifsPays(pays))) {
+            // Autres pays d'Afrique
+            return switch (type) {
+                case EXPRESS -> 5;
+                case STANDARD -> 10;
+                case ECONOMIQUE -> 15;
+                default -> 10;
+            };
+        } else {
+            // International
+            return switch (type) {
+                case EXPRESS -> 7;
+                case STANDARD -> 14;
+                case ECONOMIQUE -> 21;
+                default -> 14;
+            };
+        }
     }
     
     private BigDecimal calculerPoidsTotal(Commande commande) {
@@ -338,8 +379,26 @@ public class LivraisonServiceImpl implements LivraisonService {
         // Mettre à jour les dates selon le statut
         LocalDate aujourd = LocalDate.now();
         switch (nouveauStatut) {
+            case EN_PREPARATION -> {
+                // Pas de date spécifique pour la préparation
+            }
             case EXPEDIE -> livraison.setDateExpedition(aujourd);
+            case EN_TRANSIT -> {
+                // Date de transit (peut être la même que l'expédition)
+                if (livraison.getDateExpedition() == null) {
+                    livraison.setDateExpedition(aujourd);
+                }
+            }
+            case EN_LIVRAISON -> {
+                // En cours de livraison
+            }
             case LIVRE -> livraison.setDateLivraisonEffective(aujourd);
+            case RETOURNE -> {
+                // Date de retour
+            }
+            case ECHEC_LIVRAISON -> {
+                // Échec de livraison
+            }
         }
         
         Livraison livraisonMiseAJour = livraisonRepository.save(livraison);
