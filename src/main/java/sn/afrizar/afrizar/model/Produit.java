@@ -37,6 +37,10 @@ public class Produit {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal prix;
     
+    // Prix promotionnel (optionnel)
+    @Column(precision = 10, scale = 2)
+    private BigDecimal prixPromo;
+    
     // Stock disponible
     private Integer stock = 0;
     

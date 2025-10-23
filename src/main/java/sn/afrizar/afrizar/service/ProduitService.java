@@ -8,6 +8,7 @@ import sn.afrizar.afrizar.model.Produit;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ProduitService {
@@ -84,5 +85,30 @@ public interface ProduitService {
     long compterProduitsActifs();
     
     long compterProduitsEnAttente();
+    
+    // Méthodes pour la gestion des tendances
+    List<ProduitDto> obtenirProduitsAvecPromotion();
+    
+    List<ProduitDto> obtenirProduitsRecents(int limit);
+    
+    List<ProduitDto> obtenirProduitsTendance(int limit);
+    
+    boolean marquerProduitTendance(Long produitId, boolean tendance);
+    
+    boolean mettreProduitEnPromotion(Long produitId, double prixPromo);
+    
+    long compterTotalProduits();
+    
+    long compterProduitsEnStock();
+    
+    long compterProduitsEnPromotion();
+    
+    long compterProduitsTendance();
+    
+    long compterProduitsPlusVus();
+    
+    long compterProduitsMieuxNotes();
+    
+    Map<String, Long> obtenirStatistiquesParCategorie();
 }
 

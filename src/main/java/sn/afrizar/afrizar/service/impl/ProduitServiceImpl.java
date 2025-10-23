@@ -3,6 +3,7 @@ package sn.afrizar.afrizar.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,9 @@ import sn.afrizar.afrizar.service.ProduitService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -516,6 +519,152 @@ public class ProduitServiceImpl implements ProduitService {
         produit.setNoteMoyenne(BigDecimal.ZERO);
         produit.setNombreEvaluations(0);
         return produit;
+    }
+    
+    // ===================== MÉTHODES POUR LA GESTION DES TENDANCES =====================
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitDto> obtenirProduitsAvecPromotion() {
+        log.info("Récupération des produits en promotion");
+        
+        List<Produit> produits = produitRepository.findByPrixPromoIsNotNullAndStatut(Produit.StatutProduit.ACTIF);
+        return produits.stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitDto> obtenirProduitsRecents(int limit) {
+        log.info("Récupération des {} produits les plus récents", limit);
+        
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Produit> produits = produitRepository.findTopByStatutOrderByDateCreationDesc(Produit.StatutProduit.ACTIF, pageable);
+        return produits.stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitDto> obtenirProduitsTendance(int limit) {
+        log.info("Récupération des {} produits tendance", limit);
+        
+        // Pour l'instant, on utilise les produits les plus vus comme produits tendance
+        // Dans une vraie implémentation, on pourrait avoir un champ "tendance" dans l'entité Produit
+        Pageable pageable = PageRequest.of(0, limit);
+        List<Produit> produits = produitRepository.findTopByStatutOrderByNombreVuesDesc(Produit.StatutProduit.ACTIF, pageable);
+        return produits.stream()
+                .map(this::convertirEntityVersDto)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public boolean marquerProduitTendance(Long produitId, boolean tendance) {
+        log.info("Marquage du produit {} comme tendance: {}", produitId, tendance);
+        
+        try {
+            Produit produit = produitRepository.findById(produitId)
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé avec ID: " + produitId));
+            
+            // Pour l'instant, on simule en mettant à jour la description
+            // Dans une vraie implémentation, on ajouterait un champ "tendance" à l'entité
+            if (tendance) {
+                String description = produit.getDescription();
+                if (!description.contains("[TENDANCE]")) {
+                    produit.setDescription("[TENDANCE] " + description);
+                }
+            } else {
+                String description = produit.getDescription();
+                if (description.contains("[TENDANCE]")) {
+                    produit.setDescription(description.replace("[TENDANCE] ", ""));
+                }
+            }
+            
+            produitRepository.save(produit);
+            return true;
+        } catch (Exception e) {
+            log.error("Erreur lors du marquage du produit comme tendance", e);
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean mettreProduitEnPromotion(Long produitId, double prixPromo) {
+        log.info("Mise en promotion du produit {} avec prix {}", produitId, prixPromo);
+        
+        try {
+            Produit produit = produitRepository.findById(produitId)
+                    .orElseThrow(() -> new RuntimeException("Produit non trouvé avec ID: " + produitId));
+            
+            produit.setPrixPromo(BigDecimal.valueOf(prixPromo));
+            produitRepository.save(produit);
+            return true;
+        } catch (Exception e) {
+            log.error("Erreur lors de la mise en promotion du produit", e);
+            return false;
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterTotalProduits() {
+        return produitRepository.count();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsEnStock() {
+        return produitRepository.countByDisponibilite(Produit.Disponibilite.EN_STOCK);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsEnPromotion() {
+        return produitRepository.countByPrixPromoIsNotNullAndStatut(Produit.StatutProduit.ACTIF);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsTendance() {
+        // Pour l'instant, on compte les produits avec plus de 100 vues comme tendance
+        return produitRepository.countByNombreVuesGreaterThanAndStatut(100L, Produit.StatutProduit.ACTIF);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsPlusVus() {
+        return produitRepository.countByNombreVuesGreaterThanAndStatut(50L, Produit.StatutProduit.ACTIF);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public long compterProduitsMieuxNotes() {
+        return produitRepository.countByNoteMoyenneGreaterThanAndStatut(BigDecimal.valueOf(4.0), Produit.StatutProduit.ACTIF);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Long> obtenirStatistiquesParCategorie() {
+        log.info("Récupération des statistiques par catégorie");
+        
+        Map<String, Long> stats = new HashMap<>();
+        
+        try {
+            List<Object[]> results = produitRepository.countProduitsByCategorie();
+            
+            for (Object[] result : results) {
+                String nomCategorie = (String) result[0];
+                Long count = (Long) result[1];
+                stats.put(nomCategorie != null ? nomCategorie : "Sans catégorie", count);
+            }
+            
+        } catch (Exception e) {
+            log.error("Erreur lors de la récupération des statistiques par catégorie", e);
+        }
+        
+        return stats;
     }
 }
 

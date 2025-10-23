@@ -82,5 +82,25 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     
     @Query("SELECT SUM(p.stock) FROM Produit p WHERE p.vendeur.id = :vendeurId AND p.statut = 'ACTIF'")
     Long getTotalStockByVendeur(@Param("vendeurId") Long vendeurId);
+    
+    // Méthodes pour la gestion des tendances
+    List<Produit> findByPrixPromoIsNotNullAndStatut(Produit.StatutProduit statut);
+    
+    @Query("SELECT p FROM Produit p WHERE p.statut = :statut ORDER BY p.dateCreation DESC")
+    List<Produit> findTopByStatutOrderByDateCreationDesc(@Param("statut") Produit.StatutProduit statut, Pageable pageable);
+    
+    @Query("SELECT p FROM Produit p WHERE p.statut = :statut ORDER BY p.nombreVues DESC")
+    List<Produit> findTopByStatutOrderByNombreVuesDesc(@Param("statut") Produit.StatutProduit statut, Pageable pageable);
+    
+    long countByDisponibilite(Produit.Disponibilite disponibilite);
+    
+    long countByPrixPromoIsNotNullAndStatut(Produit.StatutProduit statut);
+    
+    long countByNombreVuesGreaterThanAndStatut(Long nombreVues, Produit.StatutProduit statut);
+    
+    long countByNoteMoyenneGreaterThanAndStatut(BigDecimal noteMoyenne, Produit.StatutProduit statut);
+    
+    @Query("SELECT c.nom, COUNT(p) FROM Produit p LEFT JOIN p.categorie c WHERE p.statut = 'ACTIF' GROUP BY c.nom")
+    List<Object[]> countProduitsByCategorie();
 }
 
