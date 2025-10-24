@@ -136,7 +136,8 @@ public class SecurityConfig {
             "https://*.afrizar.com",        // Production
             "https://*.afrizar.sn",         // Production
             "https://afrizar.vercel.app",   // Vercel
-            "https://*.vercel.app"          // Tous les déploiements Vercel
+            "https://*.vercel.app"   ,      // Tous les déploiements Vercel
+                 "https://afrizar-frontend.onrender.com"
         ));
         
         // Méthodes HTTP autorisées
