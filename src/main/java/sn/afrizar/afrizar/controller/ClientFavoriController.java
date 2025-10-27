@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Tag(name = "Client - Favoris", description = "Gestion des produits favoris du client")
 @SecurityRequirement(name = "bearer-jwt")
-@PreAuthorize("hasRole('CLIENT')")
+@PreAuthorize("hasAnyRole('CLIENT', 'ADMIN')")
 public class ClientFavoriController {
 
     private final FavoriService favoriService;
