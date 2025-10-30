@@ -68,3 +68,4 @@ public interface ConfigurationLivraisonService {
      */
     void initialiserConfigurationsParDefaut();
 }
+

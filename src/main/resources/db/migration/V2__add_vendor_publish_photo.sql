@@ -13,3 +13,4 @@ COMMENT ON COLUMN utilisateur.photo_url IS 'URL de la photo de profil du vendeur
 
 
 
+

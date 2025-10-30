@@ -43,3 +43,4 @@ COMMENT ON COLUMN panier_items.prix_unitaire IS 'Prix unitaire au moment de l''a
 
 
 
+

@@ -35,3 +35,4 @@ SELECT id, nom, prenom, email, role, actif
 FROM utilisateur 
 WHERE role = 'ADMIN';
 
+

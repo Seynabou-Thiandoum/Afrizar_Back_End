@@ -18,3 +18,4 @@ public class ModePaiementConfigDto {
     private String callbackUrl;
 }
 
+

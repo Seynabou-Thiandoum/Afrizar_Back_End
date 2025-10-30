@@ -56,3 +56,4 @@ public interface ConfigurationLivraisonRepository extends JpaRepository<Configur
            "ORDER BY CASE WHEN c.pays = :pays THEN 0 ELSE 1 END")
     List<ConfigurationLivraison> findByPaysWithFallback(@Param("pays") String pays, @Param("type") Livraison.TypeLivraison type);
 }
+

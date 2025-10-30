@@ -19,3 +19,4 @@ public interface FavoriRepository extends JpaRepository<Favori, Long> {
 
 
 
+

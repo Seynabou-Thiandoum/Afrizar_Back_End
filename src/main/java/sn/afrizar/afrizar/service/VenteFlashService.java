@@ -13,3 +13,4 @@ public interface VenteFlashService {
     
     VenteFlashDto obtenirVenteFlashAvecProduits(Long id);
 }
+

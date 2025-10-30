@@ -33,3 +33,4 @@ public class ConfigurationLivraisonDto {
     private LocalDateTime dateModification;
     private String modifiePar;
 }
+

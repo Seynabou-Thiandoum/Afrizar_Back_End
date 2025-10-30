@@ -66,3 +66,4 @@ public interface ModePaiementService {
     List<ModePaiementDto> getModesPaiementByType(ModePaiement.TypePaiement type);
 }
 
+

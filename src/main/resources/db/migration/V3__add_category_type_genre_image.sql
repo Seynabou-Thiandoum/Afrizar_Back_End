@@ -8,3 +8,4 @@ ADD COLUMN image_url VARCHAR(255);
 UPDATE categories SET type = 'VETEMENTS', genre = 'HOMME' WHERE type IS NULL OR genre IS NULL;
 
 
+

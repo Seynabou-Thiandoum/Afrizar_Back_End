@@ -22,3 +22,4 @@ VALUES
 
 CREATE INDEX idx_carousel_slides_actif ON carousel_slides(actif);
 CREATE INDEX idx_carousel_slides_ordre ON carousel_slides(ordre_affichage);
+

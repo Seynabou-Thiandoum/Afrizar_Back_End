@@ -84,3 +84,4 @@ public class VenteFlashServiceImpl implements VenteFlashService {
         return dto;
     }
 }
+

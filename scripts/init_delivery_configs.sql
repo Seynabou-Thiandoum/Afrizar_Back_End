@@ -33,3 +33,4 @@ INSERT INTO configurations_livraison (type, pays, tarif_base, tarif_par_kg, dela
 
 -- Afficher un message de confirmation
 SELECT 'Configurations de livraison initialisées avec succès!' as message;
+

@@ -21,3 +21,4 @@ public interface ProduitVenteFlashRepository extends JpaRepository<ProduitVenteF
     
     long countByVenteFlashId(Long venteFlashId);
 }
+

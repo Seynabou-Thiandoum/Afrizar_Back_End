@@ -11,3 +11,4 @@ COMMENT ON COLUMN ligne_commandes.taille IS 'Taille sélectionnée (format texte
 
 
 
+

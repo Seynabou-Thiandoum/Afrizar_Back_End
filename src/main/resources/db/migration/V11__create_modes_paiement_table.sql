@@ -65,3 +65,4 @@ UPDATE paiements p
 SET p.mode_paiement_id = (SELECT id FROM modes_paiement WHERE code = 'VIREMENT' LIMIT 1)
 WHERE p.methode = 'VIREMENT_BANCAIRE';
 
+

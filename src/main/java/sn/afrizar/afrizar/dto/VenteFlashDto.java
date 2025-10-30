@@ -37,3 +37,4 @@ public class VenteFlashDto {
         private Integer quantiteVendue;
     }
 }
+

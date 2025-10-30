@@ -47,3 +47,4 @@ public class PublicVenteFlashController {
         return ResponseEntity.notFound().build();
     }
 }
+

@@ -45,3 +45,4 @@ COMMENT ON COLUMN configurations_livraison.actif IS 'Indique si la configuration
 COMMENT ON COLUMN configurations_livraison.description IS 'Description de la configuration';
 COMMENT ON COLUMN configurations_livraison.notes IS 'Notes additionnelles';
 COMMENT ON COLUMN configurations_livraison.modifie_par IS 'Email de l''administrateur qui a modifié la configuration';
+

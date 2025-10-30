@@ -34,3 +34,4 @@ public class ModePaiementUpdateDto {
     private ModePaiement.Environnement environnement;
 }
 
+

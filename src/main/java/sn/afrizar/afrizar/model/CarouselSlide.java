@@ -56,3 +56,4 @@ public class CarouselSlide {
         dateModification = LocalDateTime.now();
     }
 }
+

@@ -42,3 +42,4 @@ public class TypeCategorie {
     private List<CategorieCombinaison> combinaisons;
 }
 
+

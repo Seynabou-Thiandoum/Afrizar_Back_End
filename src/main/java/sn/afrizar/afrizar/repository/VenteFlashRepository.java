@@ -22,3 +22,4 @@ public interface VenteFlashRepository extends JpaRepository<VenteFlash, Long> {
     
     List<VenteFlash> findByDateFinBeforeAndActifTrue(LocalDateTime date);
 }
+

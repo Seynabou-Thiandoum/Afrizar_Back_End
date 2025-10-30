@@ -41,3 +41,4 @@ public interface ModePaiementRepository extends JpaRepository<ModePaiement, Long
     List<ModePaiement> findAllByOrderByOrdreAsc();
 }
 
+

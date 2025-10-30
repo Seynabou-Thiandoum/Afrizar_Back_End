@@ -22,3 +22,4 @@ public class PublicCarouselController {
         return ResponseEntity.ok(slides);
     }
 }
+

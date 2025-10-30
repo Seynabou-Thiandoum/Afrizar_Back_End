@@ -8,3 +8,4 @@ public interface CarouselSlideService {
     
     List<CarouselSlideDto> obtenirSlidesActifs();
 }
+

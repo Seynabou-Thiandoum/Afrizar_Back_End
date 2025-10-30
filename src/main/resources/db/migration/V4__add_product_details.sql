@@ -5,3 +5,4 @@ ADD COLUMN couleur VARCHAR(50),
 ADD COLUMN matiere VARCHAR(100);
 
 
+

@@ -17,7 +17,7 @@ public interface FraisLivraisonRepository extends JpaRepository<FraisLivraison, 
     
     Page<FraisLivraison> findByActifTrueOrderByType(Pageable pageable);
     
-    List<FraisLivraison> findByTypeAndActifTrue(FraisLivraison.TypeLivraison type);
+    List<FraisLivraison> findByTypeAndActifTrue(FraisLivraison.TypeFrais type);
     
     @Query("SELECT f FROM FraisLivraison f WHERE f.actif = true AND " +
            "(:poids IS NULL OR (f.poidsMin IS NULL OR f.poidsMin <= :poids) AND " +
