@@ -66,6 +66,7 @@ public class FraisLivraison {
     }
     
     public enum TypeLivraison {
+        RETRAIT_MAGASIN("Retrait en magasin"),
         STANDARD("Standard"),
         EXPRESS("Express"),
         URGENT("Urgent");
