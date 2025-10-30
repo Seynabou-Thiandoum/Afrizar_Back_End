@@ -125,6 +125,7 @@ public class AdminProduitVenteFlashController {
         private BigDecimal prixPromotionnel;
         private Integer pourcentageReduction;
         private Integer quantiteStock;
+        private String imageUrl;
         
         public BigDecimal getPrixPromotionnel() { return prixPromotionnel; }
         public void setPrixPromotionnel(BigDecimal prixPromotionnel) { this.prixPromotionnel = prixPromotionnel; }
@@ -134,5 +135,8 @@ public class AdminProduitVenteFlashController {
         
         public Integer getQuantiteStock() { return quantiteStock; }
         public void setQuantiteStock(Integer quantiteStock) { this.quantiteStock = quantiteStock; }
+        
+        public String getImageUrl() { return imageUrl; }
+        public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     }
 }
