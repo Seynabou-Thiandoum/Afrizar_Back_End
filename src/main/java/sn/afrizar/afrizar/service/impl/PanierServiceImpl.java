@@ -7,9 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import sn.afrizar.afrizar.dto.AjouterAuPanierDto;
 import sn.afrizar.afrizar.dto.PanierDto;
 import sn.afrizar.afrizar.dto.PanierItemDto;
+import sn.afrizar.afrizar.dto.DetailPrixDto;
 import sn.afrizar.afrizar.model.*;
 import sn.afrizar.afrizar.repository.*;
 import sn.afrizar.afrizar.service.PanierService;
+import sn.afrizar.afrizar.service.CalculPrixService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class PanierServiceImpl implements PanierService {
     private final PanierItemRepository panierItemRepository;
     private final ClientRepository clientRepository;
     private final ProduitRepository produitRepository;
+    private final CalculPrixService calculPrixService;
     
     @Override
     @Transactional
@@ -255,8 +258,11 @@ public class PanierServiceImpl implements PanierService {
                 .map(this::convertirItemVersDto)
                 .collect(Collectors.toList()));
         
-        // Calculer les totaux
-        dto.setMontantTotal(panier.getMontantTotal());
+        // Calculer les totaux avec les prix avec commission
+        BigDecimal montantTotalAvecCommission = dto.getItems().stream()
+                .map(PanierItemDto::getSousTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        dto.setMontantTotal(montantTotalAvecCommission);
         dto.setNombreTotalArticles(panier.getNombreTotalArticles());
         
         return dto;
@@ -269,12 +275,28 @@ public class PanierServiceImpl implements PanierService {
         dto.setProduitNom(item.getProduit().getNom());
         dto.setProduitDescription(item.getProduit().getDescription());
         dto.setProduitPhotos(item.getProduit().getPhotos());
-        dto.setPrixUnitaire(item.getPrixUnitaire());
+        
+        // Calculer le prix avec commission pour le client
+        BigDecimal prixVendeur = item.getPrixUnitaire();
+        Long vendeurId = item.getProduit().getVendeur() != null 
+            ? item.getProduit().getVendeur().getId() 
+            : null;
+        
+        DetailPrixDto detailPrix = vendeurId != null 
+            ? calculPrixService.calculerPrixFinal(prixVendeur, vendeurId)
+            : calculPrixService.calculerPrixFinal(prixVendeur);
+        
+        // Utiliser le prix final (avec commission) pour le client
+        dto.setPrixUnitaire(detailPrix.getPrixFinal());
+        
+        // Calculer le sous-total avec le prix final et la quantité
+        BigDecimal sousTotal = detailPrix.getPrixFinal().multiply(BigDecimal.valueOf(item.getQuantite()));
+        dto.setSousTotal(sousTotal);
+        
         dto.setQuantite(item.getQuantite());
         dto.setTaille(item.getTaille());
         dto.setCouleur(item.getCouleur());
         dto.setOptionsPersonnalisation(item.getOptionsPersonnalisation());
-        dto.setSousTotal(item.getSousTotal());
         dto.setDateAjout(item.getDateAjout());
         dto.setStockDisponible(item.getProduit().getStock());
         

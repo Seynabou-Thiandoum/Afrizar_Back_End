@@ -79,6 +79,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/clients/**").hasAnyRole("CLIENT", "ADMIN")
                 .requestMatchers("/api/commandes/**").hasAnyRole("CLIENT", "ADMIN")
                 .requestMatchers("/api/livraisons/**").hasAnyRole("CLIENT", "ADMIN")
+                .requestMatchers("/api/client/**").hasAnyRole("CLIENT", "ADMIN")
                 
                 // Endpoints pour les vendeurs
                 .requestMatchers("/api/vendeurs/**").hasAnyRole("VENDEUR", "ADMIN")
